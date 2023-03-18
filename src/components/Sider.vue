@@ -12,7 +12,7 @@
         text-color="#fff"
         :default-active="state.path"
       >
-        <el-menu-item index="/index" @click="push_route('/')"
+        <el-menu-item index="/index" @click="push_route('/index')"
           ><i class="fa fa-solid fa-house"></i>首页</el-menu-item
         >
         <el-sub-menu
@@ -29,7 +29,7 @@
               :key="item.id"
               :index="item.path"
               @click="push_route(item.path)"
-              ><i :class="'fa ' + item.icon"></i>{{ item.name }}</el-menu-item
+              >{{ item.name }}</el-menu-item
             >
           </el-menu-item-group>
           <el-menu-item-group v-else>
@@ -98,6 +98,11 @@
           </el-menu-item-group>
         </el-sub-menu>
       </el-menu>
+      <div class="bottom">
+        <div @click="getRights">
+          <span>刷新</span>
+        </div>
+      </div>
     </el-aside>
   </el-scrollbar>
 </template>
@@ -106,12 +111,13 @@ import { onMounted, reactive, getCurrentInstance } from "vue";
 import { localGet } from "@/utils";
 import { useRouter } from "vue-router";
 
-const { getUserRights } =
+const { getUserRights, mittBus } =
   getCurrentInstance().appContext.config.globalProperties;
 const { push, currentRoute } = useRouter();
 
 const push_route = (e) => {
   state.path = e;
+  mittBus.emit('routeChange', e);
   push(e);
 };
 
@@ -121,6 +127,7 @@ const state = reactive({
 });
 
 const process_data = (d) => {
+  state.data = [];
   d.forEach((e) => {
     if (e) {
       const tmp_arr = { ...e };
@@ -135,14 +142,15 @@ const process_data = (d) => {
     }
   });
 };
-
+const getRights =e=>{
+  getUserRights(process_data);
+}
 onMounted(() => {
   let d = localGet("user_rights");
   d ? process_data(d) : getUserRights((e) => process_data(e));
   state.path = currentRoute._rawValue.path;
 });
 
-console.log(currentRoute._rawValue.path);
 </script>
 <style scoped>
 .aside {
@@ -183,5 +191,11 @@ i.fa {
 <style>
 .el-scrollbar .el-scrollbar__view {
   height: 100%;
+}
+.el-menu-item-group ul{
+  box-shadow:  0 0 rgba(0, 0, 0, .3),
+            0 0 0 rgba(14, 20, 25, .4),
+            inset -3px -3px 5px rgba(14, 20, 25, .4),
+            inset 3px 3px 5px rgba(0, 0, 0, .3);
 }
 </style>

@@ -34,11 +34,8 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection"> </el-table-column>
-        <el-table-column prop="full_name" label="姓名"> </el-table-column>
-        <el-table-column prop="user_name" label="登录名"> </el-table-column>
-        <el-table-column prop="group_name" label="角色名"> </el-table-column>
-        <el-table-column prop="mobile" label="手机号"> </el-table-column>
-        <el-table-column prop="email" label="邮箱"> </el-table-column>
+        <el-table-column prop="name" label="管理组"> </el-table-column>
+        <el-table-column prop="rights" label="权限"> </el-table-column>
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a
@@ -62,22 +59,22 @@
       <!--总数超过一页，再展示分页器-->
       <el-pagination
         background
-        layout="prev, pager, next, jumper"
+        layout="prev, pager, next"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"
         :current-page="state.currentPage"
-        @current-change="getData"
+        @current-change="changePage"
       />
     </el-card>
-    <EditDialogAdmin ref="editRef" @reload="getData(0)" />
+    <EditDialogGroup ref="editRef" @reload="getData(0)" />
   </Layout>
 </template>
 
 <script setup>
 import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
-import EditDialogAdmin from "@/components/EditDialogAdmin.vue";
+import EditDialogGroup from "@/components/EditDialogGroup.vue";
 
 const editRef = ref(false);
 const { urls, showMsg, req } = getCurrentInstance().appContext.config.globalProperties;
@@ -101,9 +98,10 @@ const getData = (page = 0) => {
   if (page === 0) page = state.currentPage;
   state.loading = true;
   req.get(
-    `${urls.admin_list}/page/${page}`,
+    `${urls.group_list}/page/${page}`,
     (d) => {
-      state.tableData   = d.data;
+      console.log(d);
+      state.tableData   = d.grp;
       state.loading     = false;
       state.currentPage = d.current_page;
       state.pageSize    = d.count_per_page;
@@ -112,11 +110,18 @@ const getData = (page = 0) => {
     },
     (d) => {
       console.log(d);
+      console.trace(d);
+      console.assert(d);
+      console.debug(d);
       state.loading = false;
       state.empty = '加载错误';
       showMsg.err('加载错误')
     }
   );
+};
+const changePage = (val) => {
+  state.currentPage = val;
+  getData(val);
 };
 const handleAdd = () => {
   editRef.value.open(0)
@@ -146,7 +151,16 @@ const handleDelete = () => {
 // };
 // // 单个删除
 const handleDeleteOne = (id) => {
-  req.del(urls.admin_delete + '/id/' + id);
+//   axios
+//     .delete("/categories", {
+//       data: {
+//         ids: [id],
+//       },
+//     })
+//     .then(() => {
+//       ElMessage.success("删除成功");
+//       getCategory();
+//     });
 };
 </script>
 

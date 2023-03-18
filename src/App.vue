@@ -23,7 +23,6 @@ const {urls} = getCurrentInstance().appContext.config.globalProperties;
 onMounted(()=>{
   axios.get(urls.isLogged)
     .then(({data})=>{
-      console.log(data);
       if (!data.is_login) {
         router.push({ path: '/login' });
       }

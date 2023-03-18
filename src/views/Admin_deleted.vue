@@ -63,8 +63,8 @@
       <el-pagination
         background
         layout="prev, pager, next, jumper"
-        :disabled="state.tableData.length == 0"
         :total="state.total"
+        :disabled="state.tableData.length == 0"
         :page-size="state.pageSize"
         :current-page="state.currentPage"
         @current-change="getData"
@@ -101,7 +101,7 @@ const getData = (page = 0) => {
   if (page === 0) page = state.currentPage;
   state.loading = true;
   req.get(
-    `${urls.admin_list}/page/${page}`,
+    `${urls.admin_deleted}/page/${page}`,
     (d) => {
       state.tableData   = d.data;
       state.loading     = false;

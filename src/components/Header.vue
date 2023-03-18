@@ -1,8 +1,7 @@
 <template>
   <div class="header">
     <div class="left">
-      <i class="fa-solid fa-arrow-left" v-if="state.hasBack" @click="back"
-        ></i>
+      <i class="fa-solid fa-arrow-left" v-if="state.hasBack" @click="back"></i>
       <span style="font-size: 20px">{{ state.name }}</span>
       <el-dropdown class="bg-selector">
         <span class="el-dropdown-link">
@@ -10,11 +9,15 @@
         </span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item
-              >
-                <span class="bg" v-for="(bg_, i) in bg_list" :key="i" :class="bg_" @click="change_bg(bg_)"></span>
-              </el-dropdown-item
-            >
+            <el-dropdown-item>
+              <span
+                class="bg"
+                v-for="(bg_, i) in bg_list"
+                :key="i"
+                :class="bg_"
+                @click="change_bg(bg_)"
+              ></span>
+            </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -49,31 +52,38 @@ import { useRouter } from "vue-router";
 import { localGet } from "@/utils";
 
 const changeBg = defineEmits();
-const change_bg = e=>changeBg('changebg' , e);
+const change_bg = (e) => changeBg("changebg", e);
 
-const app = getCurrentInstance()
-const { urls, req } = app.appContext.config.globalProperties;
+const app = getCurrentInstance();
+const { urls, req, getRouteName, mittBus, getUserRights } =
+  app.appContext.config.globalProperties;
 const router = useRouter();
 const state = reactive({
   name: "dashboard",
   userInfo: { nickName: "", groupName: "" }, // 用户信息变量
   hasBack: false, // 是否展示返回icon
-  path: ''
+  path: "",
 });
 
 // 背景颜色
-const bg_list = ['bg-white', 'bg-green', 'bg-orange', 'bg-red', 'bg-blue'];
+const bg_list = ["bg-white", "bg-green", "bg-orange", "bg-red", "bg-blue"];
 
 // 初始化执行方法
 onMounted(() => {
   state.path = router.currentRoute._rawValue.path;
-  const pathName = localGet('user.rights');
-  const path = [];
-  pathName && pathName.forEach(e=>{
-    if (e && e.path && e.path == state.path)
-    path.push(e.name);
+  // const pathName = localGet("user.rights");
+  // const path = [];
+  mittBus.on("routeChange", (e) => {
+    state.name = getRouteName(e);
+    console.log(e);
   });
-  path[0] && path[0].name && (state.name = path[0].name);
+  getUserRights(()=>state.name = getRouteName(state.path));
+  console.log(state.path);
+  // pathName &&
+  //   pathName.forEach((e) => {
+  //     if (e && e.path && e.path == state.path) path.push(e.name);
+  //   });
+  // path[0] && path[0].name && (state.name = path[0].name);
   getUserInfo();
 });
 // 获取用户信息
@@ -87,22 +97,14 @@ const logout = () => {
   req.get(urls.logout);
   router.push("/login");
 };
-
-// router.afterEach((to) => {
-//   const { id } = to.query;
-//   state.name = pathMap[to.name];
-//   // level2 和 level3 需要展示返回icon
-//   console.log("to.name", to.name);
-//   state.hasBack = ["level2", "level3"].includes(to.name);
-// });
 </script>
 
 <style scoped>
 .bg-green .header,
 .bg-orange .header,
 .bg-red .header,
-.bg-blue .header{
-  background: rgba(255,255,255,.7);
+.bg-blue .header {
+  background: rgba(255, 255, 255, 0.7);
 }
 .header {
   height: 50px;
@@ -119,19 +121,19 @@ const logout = () => {
   margin-right: 5px;
   cursor: pointer;
 }
-.bg-selector{
+.bg-selector {
   margin-left: 3rem;
 }
-span.bg{
+span.bg {
   display: inline-block;
   width: 1rem;
   height: 1rem;
   margin: 0 2px 0;
   border: #a0cfff solid 2px;
-  border-radius: .1rem;
+  border-radius: 0.1rem;
 }
-span.bg:hover{
-  border-color: #409EFF;
+span.bg:hover {
+  border-color: #409eff;
 }
 
 .right {

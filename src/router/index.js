@@ -23,10 +23,27 @@ const router = createRouter({
       component: () => import(/* webpackChunkName: "login" */ '../views/Login.vue')
     },
     {
-      path: '/Admin_list',
+      path: '/admin_list',
       name: 'Admin_list',
       component: () => import(/* webpackChunkName: "Admin_list" */ '../views/Admin_list.vue')
     },
+    {
+      path: '/admin_group',
+      name: 'admin_group',
+      component: () => import(/* webpackChunkName: "admin_group" */ '../views/Admin_group.vue')
+    },
+    // {
+    //   path: '/admin_permissions',
+    //   name: 'admin_permissions',
+    //   component: () => import(/* webpackChunkName: "admin_permissions" */ '../views/Admin_permissions.vue')
+    // },
+    {
+      path: '/admin_deleted',
+      name: 'admin_deleted',
+      component: () => import(/* webpackChunkName: "admin_deleted" */ '../views/Admin_deleted.vue')
+    },
+
+    ////
     {
       path: '/add',
       name: 'add',
@@ -93,11 +110,6 @@ const router = createRouter({
       path: '/account',
       name: 'account',
       component: () => import(/* webpackChunkName: "account" */ '../views/Account.vue')
-    },
-    {
-      path: '/error/:code',
-      name: 'error',
-      component: () => import(/* webpackChunkName: "error" */ '../components/Layout.vue')
     }
   ]
 })
