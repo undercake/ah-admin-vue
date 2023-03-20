@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="state.is_edit"
-    :title="state.edit_id == 0 ? '添加管理员' : '编辑管理员'"
+    :title="state.id == 0 ? '添加管理员' : '编辑管理员'"
     width="30%"
     center
     :close-on-click-modal="false"
@@ -63,19 +63,16 @@
 </template>
 <script setup>
 import { reactive, onMounted, getCurrentInstance, ref } from "vue";
+import { ElMessageBox } from "element-plus";
 
 const { urls, req, showMsg, hasRights } = getCurrentInstance().appContext.config.globalProperties;
 const emit = defineEmits();
-onMounted(() => {
-  console.log("edit Start");
-});
 const formRef = ref(null);
 const state = reactive({
   id           : -1,
   is_edit      : false,
   group_load   : false,
   load_all     : false,
-  edit_id      : 0,
   disable_close: false,
   group_list   : [],
   ruleForm     : {
@@ -107,7 +104,7 @@ const open = (id = 0) => {
   if (!hasRights('/admin/edit')) return showMsg.err('您没有权限编辑此项目');
   if (state.group_list.length < 1) get_group();
   if (id === state.id) return state.is_edit = true;
-  if (id === 0 ) return state.is_edit = true;
+  if (id === 0 ) {state.id = 0;return state.is_edit = true;}
   if (id > 0) {
     state.id = id;
     get_user_info();
@@ -153,6 +150,11 @@ const submit_form = async () => {
           (url),
           {full_name, user_name, user_group, email, mobile, id: state.id},
           d=>{
+            showMsg.succ('提交成功！');
+            if (state.id === 0)
+              ElMessageBox.alert('请在“修改管理员密码”页面修改此管理员的密码！', '提示', {
+                confirmButtonText: '确定'
+              });
             state.is_edit       = false;
             state.disable_close = false;
             state.ruleForm      = {
@@ -163,7 +165,6 @@ const submit_form = async () => {
               email     : ''
             }
             state.id = -1;
-            showMsg.succ('提交成功！');
             emit('reload', true);
           },
           e=>{

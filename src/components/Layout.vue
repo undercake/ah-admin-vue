@@ -112,7 +112,7 @@ onMounted(() => {
 .bg-white .el-loading-spinner .el-loading-text {
   color: #fff;
 }
-.fa {
+/* .fa {
   padding-right: 0.5rem;
-}
+} */
 </style>

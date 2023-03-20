@@ -28,19 +28,29 @@ const router = createRouter({
       component: () => import(/* webpackChunkName: "Admin_list" */ '../views/Admin_list.vue')
     },
     {
-      path: '/admin_group',
-      name: 'admin_group',
-      component: () => import(/* webpackChunkName: "admin_group" */ '../views/Admin_group.vue')
+      path: '/group_list',
+      name: 'group_list',
+      component: () => import(/* webpackChunkName: "Group_list" */ '../views/Group_list.vue')
     },
-    // {
-    //   path: '/admin_permissions',
-    //   name: 'admin_permissions',
-    //   component: () => import(/* webpackChunkName: "admin_permissions" */ '../views/Admin_permissions.vue')
-    // },
     {
       path: '/admin_deleted',
       name: 'admin_deleted',
       component: () => import(/* webpackChunkName: "admin_deleted" */ '../views/Admin_deleted.vue')
+    },
+    {
+      path: '/admin_pass',
+      name: 'admin_pass',
+      component: () => import(/* webpackChunkName: "Admin_pass" */ '../views/Admin_pass.vue')
+    },
+    {
+      path: '/group_rights',
+      name: 'group_rights',
+      component: () => import(/* webpackChunkName: "Group_rights" */ '../views/Group_rights.vue')
+    },
+    {
+      path: '/Employee_list',
+      name: 'Employee_list',
+      component: () => import(/* webpackChunkName: "Employee_list" */ '../views/Employee_list.vue')
     },
 
     ////

@@ -186,6 +186,8 @@ i.fa {
   margin: 0 10px 0 10px;
   font-size: 1.06rem;
   line-height: 56px;
+  width: 1rem;
+  text-align: center;
 }
 </style>
 <style>
@@ -197,5 +199,9 @@ i.fa {
             0 0 0 rgba(14, 20, 25, .4),
             inset -3px -3px 5px rgba(14, 20, 25, .4),
             inset 3px 3px 5px rgba(0, 0, 0, .3);
+}
+.el-sub-menu.is-opened .el-menu-item-group__title{
+  margin: 0;
+  padding: 0;
 }
 </style>

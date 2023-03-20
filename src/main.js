@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-03-03 17:20:58
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-03-18 17:15:34
+ * @LastEditTime: 2023-03-20 16:39:31
  * @FilePath: /ah-main-admin/src/main.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -39,7 +39,6 @@ import {
 } from "element-plus";
 import App from "./App.vue";
 import router from "@/router";
-// import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import axios from "axios";
 import { localSet, localGet } from "@/utils";
 import mitt from "mitt";
@@ -67,7 +66,11 @@ const request = (method, url, succ, err, data = Object.create(null)) => {
   // console.log(method, data);
   axios[method](url, data)
     .then((data) => {
-      const d = data.data;
+      let d;
+      if (data?.code !== undefined)
+        d = data;
+      else if(data?.data?.code !== undefined)
+        d = data.data;
       if (d && d.code === 0) {
         succ(d);
       } else if (d && d.code !== 0) {
@@ -79,7 +82,7 @@ const request = (method, url, succ, err, data = Object.create(null)) => {
     })
     .catch((e) => {
       showNetErr(e);
-      console.log(e);
+      console.error(e);
       err(e);
     })
     .finally();
@@ -87,25 +90,29 @@ const request = (method, url, succ, err, data = Object.create(null)) => {
 const BaseUri = "http://127.0.0.1:3000";
 const urls = {
   BaseUri,
-  captcha: BaseUri + "/midas/cap/get",
-  login: BaseUri + "/midas/user/login",
-  isLogged: BaseUri + "/midas/user/logged",
-  logout: BaseUri + "/midas/user/logout",
-  userProfile: BaseUri + "/midas/user/profile",
+  captcha        : BaseUri + "/midas/cap/get",
+  login          : BaseUri + "/midas/user/login",
+  isLogged       : BaseUri + "/midas/user/logged",
+  logout         : BaseUri + "/midas/user/logout",
+  userProfile    : BaseUri + "/midas/user/profile",
   getUserSideMenu: BaseUri + "/midas/user/getusersidemenu",
-  admin_list: BaseUri + "/midas/admin/list",
-  admin_detail: BaseUri + "/midas/admin/detail",
-  admin_add: BaseUri + "/midas/admin/add",
-  admin_alter: BaseUri + "/midas/admin/alter",
-  admin_delete: BaseUri + "/midas/admin/delete",
-  admin_deleted: BaseUri + "/midas/admin/deleted",
-  group_list: BaseUri + "/midas/group/list",
-  group_list_all: BaseUri + "/midas/group/all",
-  group_detail: BaseUri + "/midas/group/detail",
-  group_add: BaseUri + "/midas/group/add",
-  group_alter: BaseUri + "/midas/group/alter",
-  group_delete: BaseUri + "/midas/group/delete",
-  rights_list: BaseUri + "/midas/group/rights",
+  admin_list     : BaseUri + "/midas/admin/list",
+  admin_all      : BaseUri + "/midas/admin/all",
+  admin_detail   : BaseUri + "/midas/admin/detail",
+  admin_add      : BaseUri + "/midas/admin/add",
+  admin_alter    : BaseUri + "/midas/admin/alter",
+  admin_delete   : BaseUri + "/midas/admin/delete",
+  admin_deleted  : BaseUri + "/midas/admin/deleted",
+  admin_deep_del : BaseUri + "/midas/admin/deep_del",
+  admin_pass     : BaseUri + "/midas/admin/pass",
+  admin_rec      : BaseUri + "/midas/admin/rec",
+  group_list     : BaseUri + "/midas/group/list",
+  group_list_all : BaseUri + "/midas/group/all",
+  group_detail   : BaseUri + "/midas/group/detail",
+  group_add      : BaseUri + "/midas/group/add",
+  group_alter    : BaseUri + "/midas/group/alter",
+  group_delete   : BaseUri + "/midas/group/delete",
+  rights_list    : BaseUri + "/midas/group/rights",
 };
 
 const req = {
@@ -118,20 +125,22 @@ const req = {
   put($url, $data, $fb, $err = () => {}) {
     request("put", $url, $fb, $err, $data);
   },
-  del($url, $data, $fb, $err = () => {}) {
-    request("delete", $url, $fb, $err, $data);
+  del($url, $fb = ()=>{}, $err = () => {}) {
+    request("delete", $url, $fb, $err);
   },
 };
 
 const getUserRights = (fun = () => {}) => {
   req.get(urls.getUserSideMenu, (data) => {
     let user_rights = [];
-    data.rights.forEach((r) => {
-      const { id, parent, type, path, name, icon } = r;
-      if (r.parent !== 0) {
-        if (!user_rights[r.parent] instanceof Object)
-          user_rights[r.parent] = {
-            ...data.rights[r.parent],
+    const _rights = [];
+    data.rights.forEach((r) => (_rights[r.id] = { ...r }));
+    _rights.forEach((r) => {
+      const { id, parent, type, path, name, icon, sort } = r;
+      if (parent !== 0) {
+        if (!user_rights[parent])
+          user_rights[parent] = {
+            ..._rights[parent],
             children: [
               {
                 id,
@@ -140,11 +149,22 @@ const getUserRights = (fun = () => {}) => {
                 path,
                 name,
                 icon,
-                children: [],
+                children: [{ id, parent, type, path, name, icon, sort }],
               },
             ],
           };
-      } else
+        else
+          user_rights[parent].children.push({
+            id,
+            parent,
+            type,
+            path,
+            name,
+            icon,
+            sort,
+          });
+      } else {
+        if (!user_rights[r.id])
         user_rights[r.id] = {
           id,
           parent,
@@ -152,9 +172,15 @@ const getUserRights = (fun = () => {}) => {
           path,
           icon,
           name,
+          sort,
           children: [],
         };
+      }
     });
+    user_rights.forEach((d,i) => {
+      user_rights[i].children.sort((a,b) => a.sort - b.sort);
+    })
+    user_rights.sort((a,b) => a.sort - b.sort);
     localSet("user_rights", user_rights);
     localSet("all_rights", data.rights);
     fun(user_rights);

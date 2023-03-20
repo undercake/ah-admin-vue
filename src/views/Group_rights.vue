@@ -3,7 +3,8 @@
     <el-card class="category-container" v-loading="state.loading">
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd">
+          <el-button type="primary" @click="handleAdd"
+            >
             <i class="fa fa-solid fa-plus"></i>
             增加</el-button
           >
@@ -11,13 +12,12 @@
             title="确定删除吗？"
             confirmButtonText="确定"
             cancelButtonText="取消"
-            @confirm="handleDeleteOne(0)"
+            @confirm="handleDelete"
           >
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量彻底删除</el-button
-              >
+                批量删除</el-button>
             </template>
           </el-popconfirm>
           <el-button type="primary" @click="getData(state.currentPage)"
@@ -34,51 +34,50 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection"> </el-table-column>
-        <el-table-column prop="full_name" label="姓名"> </el-table-column>
-        <el-table-column prop="user_name" label="登录名"> </el-table-column>
-        <el-table-column prop="group_name" label="角色名"> </el-table-column>
-        <el-table-column prop="mobile" label="手机号"> </el-table-column>
-        <el-table-column prop="email" label="邮箱"> </el-table-column>
+        <el-table-column prop="name" label="角色名"> </el-table-column>
+        <el-table-column prop="rights" label="权限"> </el-table-column>
         <el-table-column label="操作" width="220">
           <template #default="scope">
+            <a
+              style="cursor: pointer; margin-right: 10px"
+              @click="handleEdit(scope.row.id)"
+              >修改</a
+            >
             <el-popconfirm
-              title="确定恢复吗？"
+              title="确定删除吗？"
               confirmButtonText="确定"
               cancelButtonText="取消"
-              @confirm="recover(scope.row.id)"
+              @confirm="handleDeleteOne(scope.row.id)"
             >
               <template #reference>
-                <a style="cursor: pointer; margin-right: 10px">恢复</a>
+                <a style="cursor: pointer">删除</a>
               </template>
             </el-popconfirm>
-            <a style="cursor: pointer" @click="handleDeleteOne(scope.row.id)">彻底删除</a>
           </template>
         </el-table-column>
       </el-table>
       <!--总数超过一页，再展示分页器-->
       <el-pagination
         background
-        layout="prev, pager, next, jumper"
-        :total="state.total"
+        layout="prev, pager, next"
         :disabled="state.tableData.length == 0"
+        :total="state.total"
         :page-size="state.pageSize"
         :current-page="state.currentPage"
-        @current-change="getData"
+        @current-change="changePage"
       />
     </el-card>
-    <EditDialogAdmin ref="editRef" @reload="getData(0)" />
+    <EditDialogGroup ref="editRef" @reload="getData(0)" />
   </Layout>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, getCurrentInstance } from "vue";
-import {ElMessageBox} from 'element-plus';
+import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
-import EditDialogAdmin from "@/components/EditDialogAdmin.vue";
+import EditDialogGroup from "@/components/EditDialogGroup.vue";
 
 const editRef = ref(false);
-const { urls, showMsg, req } =
-  getCurrentInstance().appContext.config.globalProperties;
+const { urls, showMsg, req } = getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
   loading: true,
   tableData: [], // 数据列表
@@ -89,7 +88,7 @@ const state = reactive({
   type: "add", // 操作类型
   level: 1,
   parent_id: 0,
-  empty: "没有数据",
+  empty: '没有数据'
 });
 onMounted(() => {
   getData();
@@ -99,60 +98,69 @@ const getData = (page = 0) => {
   if (page === 0) page = state.currentPage;
   state.loading = true;
   req.get(
-    `${urls.admin_deleted}/page/${page}`,
+    `${urls.group_list}/page/${page}`,
     (d) => {
-      state.tableData = d.data;
-      state.loading = false;
+      console.log(d);
+      state.tableData   = d.grp;
+      state.loading     = false;
       state.currentPage = d.current_page;
-      state.pageSize = d.count_per_page;
-      state.total = d.count;
-      state.empty = "没有数据";
+      state.pageSize    = d.count_per_page;
+      state.total       = d.count;
+      state.empty       = '没有数据';
     },
     (d) => {
       console.log(d);
+      console.trace(d);
+      console.assert(d);
+      console.debug(d);
       state.loading = false;
-      state.empty = "加载错误";
-      showMsg.err("加载错误");
+      state.empty = '加载错误';
+      showMsg.err('加载错误')
     }
   );
 };
+const changePage = (val) => {
+  state.currentPage = val;
+  getData(val);
+};
 const handleAdd = () => {
-  editRef.value.open(0);
+  editRef.value.open(0)
 };
 // 修改分类
-const recover = (id) =>
-  req.post(urls.admin_rec, { id }, () => {
-    getData();
-  });
+const handleEdit = (id) => editRef.value.open(id);
 // 选择项
 const handleSelectionChange = (val) => {
   state.multipleSelection = val;
-  req.post(urls.admin_rec, { ids: state.multipleSelection }, (d) => getData());
 };
 // 批量删除
-const handleDelete = () => {};
-
-const deep_delete = (id = 0) => {
-  if (id === 0)
-    req.post(urls.admin_deep_del, { ids: state.multipleSelection }, (d) => {
-      showMsg.succ("成功删除！");
-      getData();
-    });
-  req.del(urls.admin_deep_del + "/id/" + id, (d) => {
-    showMsg.succ("成功删除！");
-    getData();
-  });
-};
-
+const handleDelete = () => {
+//   if (!state.multipleSelection.length) {
+//     ElMessage.error("请选择项");
+//     return;
+  }
+//   axios
+//     .delete("/categories", {
+//       data: {
+//         ids: state.multipleSelection.map((i) => i.categoryId),
+//       },
+//     })
+//     .then(() => {
+//       ElMessage.success("删除成功");
+//       getCategory();
+//     });
+// };
 // // 单个删除
 const handleDeleteOne = (id) => {
-  console.log(id);
-  ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  }).then(() => deep_delete(id))
-  .catch(e=>console.log(e));
+//   axios
+//     .delete("/categories", {
+//       data: {
+//         ids: [id],
+//       },
+//     })
+//     .then(() => {
+//       ElMessage.success("删除成功");
+//       getCategory();
+//     });
 };
 </script>
 
