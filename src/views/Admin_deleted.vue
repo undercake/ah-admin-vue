@@ -3,9 +3,9 @@
     <el-card class="category-container" v-loading="state.loading">
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd">
-            <i class="fa fa-solid fa-plus"></i>
-            增加</el-button
+          <el-button type="primary" @click="handleRec">
+            <i class="fa fa-solid fa-rotate-right"></i>
+            还原</el-button
           >
           <el-popconfirm
             title="确定删除吗？"
@@ -37,7 +37,7 @@
         <el-table-column prop="full_name" label="姓名"> </el-table-column>
         <el-table-column prop="user_name" label="登录名"> </el-table-column>
         <el-table-column prop="group_name" label="角色名"> </el-table-column>
-        <el-table-column prop="mobile" label="手机号"> </el-table-column>
+        <el-table-column prop="deleted" label="删除时间"> </el-table-column>
         <el-table-column prop="email" label="邮箱"> </el-table-column>
         <el-table-column label="操作" width="220">
           <template #default="scope">
@@ -51,7 +51,9 @@
                 <a style="cursor: pointer; margin-right: 10px">恢复</a>
               </template>
             </el-popconfirm>
-            <a style="cursor: pointer" @click="handleDeleteOne(scope.row.id)">彻底删除</a>
+            <a style="cursor: pointer" @click="handleDeleteOne(scope.row.id)"
+              >彻底删除</a
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -72,7 +74,7 @@
 
 <script setup>
 import { onMounted, reactive, ref, getCurrentInstance } from "vue";
-import {ElMessageBox} from 'element-plus';
+import { ElMessageBox } from "element-plus";
 import Layout from "@/components/Layout.vue";
 import EditDialogAdmin from "@/components/EditDialogAdmin.vue";
 
@@ -127,18 +129,20 @@ const recover = (id) =>
 // 选择项
 const handleSelectionChange = (val) => {
   state.multipleSelection = val;
-  req.post(urls.admin_rec, { ids: state.multipleSelection }, (d) => getData());
 };
 // 批量删除
-const handleDelete = () => {};
+const handleRec = () => {
+  const ids = state.multipleSelection.map((d) => d.id);
+  req.post(urls.admin_rec, { ids }, () => getData());
+};
 
 const deep_delete = (id = 0) => {
   if (id === 0)
-    req.post(urls.admin_deep_del, { ids: state.multipleSelection }, (d) => {
+    req.post(urls.admin_deep_del, { ids: state.multipleSelection }, () => {
       showMsg.succ("成功删除！");
       getData();
     });
-  req.del(urls.admin_deep_del + "/id/" + id, (d) => {
+  req.del(urls.admin_deep_del + "/id/" + id, () => {
     showMsg.succ("成功删除！");
     getData();
   });
@@ -147,12 +151,14 @@ const deep_delete = (id = 0) => {
 // // 单个删除
 const handleDeleteOne = (id) => {
   console.log(id);
+  if (id == 0 && state.multipleSelection.length < 1) return showMsg.warn('您没有选择数据！');
   ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
-  }).then(() => deep_delete(id))
-  .catch(e=>console.log(e));
+  })
+    .then(() => deep_delete(id))
+    .catch((e) => console.log(e));
 };
 </script>
 

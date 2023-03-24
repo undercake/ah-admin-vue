@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
+import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogAdmin from "@/components/EditDialogAdmin.vue";
 
@@ -129,6 +129,9 @@ const handleSelectionChange = (val) => state.multipleSelection = val;
 // 批量删除
 const handleDelete = () => {
   console.log(state.multipleSelection.length);
+  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择数据！');
+  const ids = state.multipleSelection.map(d=>d.id);
+  req.post(urls.admin_delete,{ids}, ()=>getData());
   }
 // // 单个删除
 const handleDeleteOne = (id) => {

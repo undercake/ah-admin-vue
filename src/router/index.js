@@ -52,6 +52,16 @@ const router = createRouter({
       name: 'Employee_list',
       component: () => import(/* webpackChunkName: "Employee_list" */ '../views/Employee_list.vue')
     },
+    {
+      path: '/Employee_deleted',
+      name: 'Employee_deleted',
+      component: () => import(/* webpackChunkName: "Employee_deleted" */ '../views/Employee_deleted.vue')
+    },
+    {
+      path: '/services_list',
+      name: 'Services_list',
+      component: () => import(/* webpackChunkName: "Services_list" */ '../views/Services_list.vue')
+    },
 
     ////
     {

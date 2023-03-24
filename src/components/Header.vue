@@ -3,7 +3,7 @@
     <div class="left">
       <i class="fa-solid fa-arrow-left" v-if="state.hasBack" @click="back"></i>
       <span style="font-size: 20px">{{ state.name }}</span>
-      <el-dropdown class="bg-selector">
+      <el-dropdown class="bg-selector right">
         <span class="el-dropdown-link">
           <span class="bg"></span>
         </span>
@@ -71,19 +71,13 @@ const bg_list = ["bg-white", "bg-green", "bg-orange", "bg-red", "bg-blue"];
 // 初始化执行方法
 onMounted(() => {
   state.path = router.currentRoute._rawValue.path;
-  // const pathName = localGet("user.rights");
-  // const path = [];
   mittBus.on("routeChange", (e) => {
+    if (e === false) return state.name = '加载中...';
     state.name = getRouteName(e);
     console.log(e);
   });
   getUserRights(()=>state.name = getRouteName(state.path));
   console.log(state.path);
-  // pathName &&
-  //   pathName.forEach((e) => {
-  //     if (e && e.path && e.path == state.path) path.push(e.name);
-  //   });
-  // path[0] && path[0].name && (state.name = path[0].name);
   getUserInfo();
 });
 // 获取用户信息
@@ -100,6 +94,10 @@ const logout = () => {
 </script>
 
 <style scoped>
+.bg-green .bg{background-color: #e1f3d8;}
+.bg-orange .bg{background-color: #faecd8;}
+.bg-red .bg{background-color: #fde2e2;}
+.bg-blue .bg {background-color: #d9ecff;}
 .bg-green .header,
 .bg-orange .header,
 .bg-red .header,
@@ -114,6 +112,13 @@ const logout = () => {
   align-items: center;
   padding: 0 20px;
 }
+.header>.left {
+  min-width: 300px;
+}
+.header>.left>.right {
+  margin-right: 0;
+  float: right;
+}
 .header .left .back {
   border: 1px solid #e9e9e9;
   padding: 5px;
@@ -126,8 +131,8 @@ const logout = () => {
 }
 span.bg {
   display: inline-block;
-  width: 1rem;
-  height: 1rem;
+  width: 1.4rem;
+  height: 1.4rem;
   margin: 0 2px 0;
   border: #a0cfff solid 2px;
   border-radius: 0.1rem;

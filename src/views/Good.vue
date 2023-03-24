@@ -78,7 +78,6 @@
 import { onMounted, reactive, getCurrentInstance } from "vue";
 import axios from "@/utils/axios";
 import { ElMessage } from "element-plus";
-import { Plus, Delete } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
 import Layout from "@/components/Layout.vue";
 

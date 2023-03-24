@@ -17,9 +17,16 @@
       <el-form-item label="姓名" prop="full_name">
         <el-input type="text" v-model="state.ruleForm.full_name"></el-input>
       </el-form-item>
+      <el-tooltip
+        class="box-item"
+        effect="dark"
+        content="登录名不能与现有用户的登录名重复"
+        placement="bottom"
+      >
       <el-form-item label="登录名" prop="user_name">
         <el-input type="text" v-model="state.ruleForm.user_name"></el-input>
       </el-form-item>
+      </el-tooltip>
       <el-form-item
         v-loading="state.group_load"
         label="用户组"
@@ -102,13 +109,12 @@ const state = reactive({
 const open = (id = 0) => {
   console.log(hasRights('/admin/edit'));
   if (!hasRights('/admin/edit')) return showMsg.err('您没有权限编辑此项目');
+    state.is_edit = true;
   if (state.group_list.length < 1) get_group();
-  if (id === state.id) return state.is_edit = true;
-  if (id === 0 ) {state.id = 0;return state.is_edit = true;}
+  if (id === 0 ) {return state.id = 0;}
   if (id > 0) {
     state.id = id;
     get_user_info();
-    state.is_edit = true;
   }
 };
 

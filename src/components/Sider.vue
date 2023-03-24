@@ -117,7 +117,8 @@ const { push, currentRoute } = useRouter();
 
 const push_route = (e) => {
   state.path = e;
-  mittBus.emit('routeChange', e);
+  mittBus.emit('routChangeStart', true);
+  mittBus.emit('routeChange', false);
   push(e);
 };
 

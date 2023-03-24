@@ -5,8 +5,8 @@
         <div class="header">
           <el-button type="primary" @click="handleAdd">
             <i class="fa fa-solid fa-plus"></i>
-            增加</el-button
-          >
+            增加
+          </el-button>
           <el-popconfirm
             title="确定删除吗？"
             confirmButtonText="确定"
@@ -16,13 +16,14 @@
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量删除</el-button
-              >
+                批量删除
+              </el-button>
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)"
-            ><i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
-          >
+          <el-button type="primary" @click="getData(state.currentPage)">
+            <i class="fa fa-solid fa-arrows-rotate"></i>
+            刷新
+          </el-button>
         </div>
       </template>
       <el-table
@@ -36,40 +37,25 @@
         <el-table-column type="selection" />
         <el-table-column prop="avatar" label="头像" width="100">
           <template #default="scope">
-            <el-avatar
-              shape="square"
-              size="large"
-              :src="scope.row.avatar"
-            />
+            <el-avatar shape="square" size="large" :src="scope.row.avatar" />
           </template>
         </el-table-column>
-        <el-table-column prop="name" label="姓名" width="80" />
-        <el-table-column prop="gender" label="性别" width="60">
+        <el-table-column prop="name" label="服务名称" width="200" />
+        <el-table-column prop="intro" label="服务简介" width="">
+        </el-table-column>
+        <el-table-column prop="class_id" label="服务类目" width="130">
           <template #default="scope">
-            {{ (['男', '女'])[scope.row.gender] }}
+            {{ state.category[scope.row.class_id] }}
           </template>
         </el-table-column>
-        <el-table-column prop="phone" label="手机号" width="130">
-          <template #default="scope">
-            {{ scope.row.phone.split(',')[0] }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="grade" label="学历" width="80">
-          <template #default="scope">
-            {{ (['未知','小学','初中','高中','中专','技校','大专','本科','硕士','博士'])[scope.row.grade] }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="origin" label="籍贯" width="170" />
-        <el-table-column prop="address" label="现住址" />
-        <el-table-column prop="intro" label="简介" />
-        <el-table-column prop="note" label="备注" width="130" />
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a
               style="cursor: pointer; margin-right: 10px"
               @click="handleEdit(scope.row.id)"
-              >修改</a
             >
+              修改
+            </a>
             <el-popconfirm
               title="确定删除吗？"
               confirmButtonText="确定"
@@ -94,14 +80,14 @@
         @current-change="getData"
       />
     </el-card>
-    <EditDialogEmp ref="editRef" @reload="getData(0)" />
+    <EditDialogServ ref="editRef" @reload="getData(0)" />
   </Layout>
 </template>
 
 <script setup>
-import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
+import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
-import EditDialogEmp from "@/components/EditDialogEmp.vue";
+import EditDialogServ from "@/components/EditDialogServ.vue";
 
 const editRef = ref(false);
 const { urls, showMsg, req } =
@@ -117,6 +103,7 @@ const state = reactive({
   level: 1,
   parent_id: 0,
   empty: "没有数据",
+  category: [],
 });
 onMounted(() => {
   getData();
@@ -125,9 +112,17 @@ onMounted(() => {
 const getData = (page = 0) => {
   if (page === 0) page = state.currentPage;
   state.loading = true;
+  req.get(urls.services_category, (d) => {
+    console.log(d);
+    const tmpData = [];
+    d.data.forEach((i) => (tmpData[i.id] = i.name));
+    state.category = tmpData;
+    console.log(tmpData);
+  });
   req.get(
-    `${urls.employee_list}/page/${page}`,
+    `${urls.services_list}/page/${page}`,
     (d) => {
+      console.log(d);
       state.tableData = d.data;
       state.loading = false;
       state.currentPage = d.current_page;
@@ -157,7 +152,7 @@ const handleDelete = () => {
 };
 // // 单个删除
 const handleDeleteOne = (id) => {
-  req.del(urls.employee_delete + "/id/" + id, () => getData());
+  req.del(urls.services_delete + "/id/" + id, () => getData());
 };
 </script>
 

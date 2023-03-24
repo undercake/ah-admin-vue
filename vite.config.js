@@ -44,7 +44,8 @@ export default ({ mode }) => defineConfig({
           }
         },
       },
-      '/static': 'http://tp6.to'
+      '/static': 'http://tp6.to',
+      '/upload': 'http://tp6.to',
     }
   },
   css: {

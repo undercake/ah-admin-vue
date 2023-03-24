@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="state.is_edit"
-    :title="state.edit_id == 0 ? '添加管理员' : '编辑管理员'"
+    :title="state.edit_id == 0 ? '添加角色' : '编辑角色'"
     width="30%"
     center
     :close-on-click-modal="false"
@@ -90,13 +90,11 @@ const state = reactive({
 const open = (id = 0) => {
   console.log(hasRights("/group/edit"));
   if (!hasRights("/group/edit")) return showMsg.err("您没有权限编辑此项目");
+    state.is_edit = true;
   if (state.group_list.length < 1) get_rights();
-  if (id === state.id) return (state.is_edit = true);
-  if (id === 0) return (state.is_edit = true);
   if (id > 0) {
     state.id = id;
     get_group_info();
-    state.is_edit = true;
   }
 };
 

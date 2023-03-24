@@ -62,11 +62,12 @@
 <script setup>
 import axios from "axios";
 import md5 from "js-md5";
-import { getCurrentInstance, ref, reactive } from "vue";
+import { getCurrentInstance, ref, reactive, onMounted } from "vue";
 import { localSet } from "../utils";
-const { urls, showMsg, getUserRights } =
+const { urls, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
 const loginForm = ref(null);
+let timer = 0;
 
 const state = reactive({
   random: 0,
@@ -85,10 +86,17 @@ const state = reactive({
   },
 });
 
+onMounted(()=>{
+  timer = setInterval(()=>{
+    if ((!document.querySelector('img.el-image__inner')) || (document.querySelector('img.el-image__inner').width == 0)) changeRandom();
+    else clearInterval(timer);
+  }, 6000);
+})
+
 const logging = defineEmits();
 const logined = e=>logging('login' , e);
 
-const changeRandom = () => (state.random = Math.random());
+const changeRandom = () => {state.random = Math.random(); state.ruleForm.captcha = ''};
 const submitForm = async () => {
   loginForm.value.validate((valid, err) => {
     if (valid) {
@@ -100,12 +108,12 @@ const submitForm = async () => {
             localSet("login", true);
             localSet("user_nickname", data.nickname);
             localSet("user_group", data.group);
-            getUserRights();
+            // getUserRights();
             logined();
           } else {
             changeRandom();
             console.warn(data);
-            showMsg.err(data.msg);
+            showMsg.err(data.message);
           }
         })
         .catch((e) => {
