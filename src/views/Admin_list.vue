@@ -1,6 +1,9 @@
 <template>
   <Layout>
-    <el-card class="category-container" v-loading="state.loading">
+    <el-card class="category-container" v-if="state.firstLoading">
+      <el-skeleton :rows="8" animated />
+    </el-card>
+    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleAdd"
@@ -82,6 +85,7 @@ import EditDialogAdmin from "@/components/EditDialogAdmin.vue";
 const editRef = ref(false);
 const { urls, showMsg, req } = getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  firstLoading: true,
   loading: true,
   tableData: [], // 数据列表
   multipleSelection: [], // 选中项
@@ -103,14 +107,16 @@ const getData = (page = 0) => {
   req.get(
     `${urls.admin_list}/page/${page}`,
     (d) => {
-      state.tableData   = d.data;
-      state.loading     = false;
-      state.currentPage = d.current_page;
-      state.pageSize    = d.count_per_page;
-      state.total       = d.count;
-      state.empty       = '没有数据';
+      state.firstLoading = false;
+      state.tableData    = d.data;
+      state.loading      = false;
+      state.currentPage  = d.current_page;
+      state.pageSize     = d.count_per_page;
+      state.total        = d.count;
+      state.empty        = '没有数据';
     },
     (d) => {
+      state.firstLoading = false;
       console.log(d);
       console.error(d);
       state.loading = false;
@@ -129,10 +135,10 @@ const handleSelectionChange = (val) => state.multipleSelection = val;
 // 批量删除
 const handleDelete = () => {
   console.log(state.multipleSelection.length);
-  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择数据！');
+  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择要删除的数据！');
   const ids = state.multipleSelection.map(d=>d.id);
   req.post(urls.admin_delete,{ids}, ()=>getData());
-  }
+}
 // // 单个删除
 const handleDeleteOne = (id) => {
   req.del(urls.admin_delete + '/id/' + id, ()=>getData());

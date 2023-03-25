@@ -1,6 +1,9 @@
 <template>
   <Layout>
-    <el-card class="category-container" v-loading="state.loading">
+    <el-card class="category-container" v-if="state.firstLoading">
+      <el-skeleton :rows="8" animated />
+    </el-card>
+    <el-card class="category-container" v-if="!state.loading">
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleAdd"
@@ -103,6 +106,7 @@ const getData = (page = 0) => {
       console.log(d);
       state.tableData   = d.grp;
       state.loading     = false;
+      state.firstLoading = false;
       state.currentPage = d.current_page;
       state.pageSize    = d.count_per_page;
       state.total       = d.count;
@@ -113,6 +117,7 @@ const getData = (page = 0) => {
       console.trace(d);
       console.assert(d);
       console.debug(d);
+      state.firstLoading = false;
       state.loading = false;
       state.empty = '加载错误';
       showMsg.err('加载错误')

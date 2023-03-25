@@ -8,70 +8,50 @@
   >
     <el-skeleton :rows="3" animated v-if="state.emp_load" />
     <el-form
-      :model="state.ruleForm"
       :rules="state.rules"
-      ref="formRef"
+      :ref="formRef[i]"
       label-width="100px"
       class="good-form"
-      v-if="!state.emp_load"
+      :model="state.ruleForm[i]"
+      v-if="state.ruleForm[i]"
+      v-for="(o, i) in state.ruleForm"
     >
-      <el-form-item label="头像" prop="avatar">
-        <el-upload
-          class="avatar-uploader"
-          :action="urls.upload_public"
-          :show-file-list="false"
-          :on-success="
-            (...e) => {
-              handleUploadSuccess('avatar', ...e);
-            }
-          "
-          :before-upload="
-            (...e) => {
-              beforeUpload('avatar', ...e);
-            }
-          "
-          accept="image/*"
-        >
-          <img
-            v-if="state.avatar != ''"
-            :src="state.ruleForm.avatar"
-            class="avatar"
-          />
-          <i v-else class="fa fa-regular fa-plus-large" />
-        </el-upload>
-      </el-form-item>
-      <el-form-item label="服务名称" prop="name">
+      <el-form-item label="名称" prop="name">
         <el-input
           type="text"
           @input="name_change"
-          v-model="state.ruleForm.name"
+          v-model="state.ruleForm[i].name"
         ></el-input>
       </el-form-item>
-      <el-form-item label="服务简介" prop="intro">
+      <el-form-item label="价格" prop="price">
         <el-input
-          v-model="state.ruleForm.intro"
+          v-model="state.ruleForm[i].price"
           :autosize="{ minRows: 2, maxRows: 4 }"
-          type="textarea"
+          type="number"
           placeholder="服务简介"
         />
       </el-form-item>
-      <el-form-item label="温馨提示" prop="prompt">
-        <el-input type="text" v-model="state.ruleForm.prompt"></el-input>
+      <el-form-item label="价格说明" prop="price_intro">
+        <el-input type="text" v-model="state.ruleForm[i].price_intro"></el-input>
       </el-form-item>
-      <el-form-item label="上架状态" prop="status">
-        <el-select
-          v-model="state.ruleForm.status"
-          class="m-2"
-          placeholder="Select"
-          size="large"
-        >
-          <el-option
-            v-for="(item,ind) in ['下架', '上架']"
-            :key="ind"
-            :label="item"
-            :value="ind"
-          />
-        </el-select>
+      <el-form-item label="最小购买数量" prop="min_num">
+        <el-input type="text" v-model="state.ruleForm[i].min_num"></el-input>
+      </el-form-item>
+      <el-form-item label="服务者系数" prop="wai_num">
+        <el-input type="text" v-model="state.ruleForm[i].wai_num"></el-input>
+      </el-form-item>
+      <el-form-item label="图片" prop="image">
+              <el-upload
+              class="avatar-uploader"
+              :action="urls.upload_public"
+              :show-file-list="false"
+              :on-success="(...e)=>{handleUploadSuccess('image',...e)}"
+              :before-upload="(...e)=>{beforeUpload('image',...e)}"
+              accept="image/*"
+            >
+              <img v-if="state.ruleForm[i].img!= ''" :src="state.ruleForm[i].image" class="image" />
+              <i v-else class="fa fa-regular fa-plus-large"></i>
+            </el-upload>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -98,7 +78,7 @@ const { urls, req, showMsg, hasRights } =
 const emit = defineEmits();
 onMounted(() => {});
 
-const formRef = ref(null);
+const formRef = ref([]);
 const state = reactive({
   id           : -1,
   is_edit      : false,
@@ -109,13 +89,14 @@ const state = reactive({
   options:[
     // {id, name, image, service_id, price, price_intro, min_num, wai_num, deleted}
   ],
-  ruleForm     : {
-    avatar: "",
-    name  : "",
-    intro : "",
-    prompt: "",
-    status: ""
-  },
+  ruleForm     : [{
+    name: "",
+    price_intro  : "",
+    min_num : "",
+    wai_num: "",
+    image: "",
+    deleted:0
+  }],
   rights_selected: new Set([]),
   rules: {
     name: [{ required: "true", message: "服务名称不能为空", trigger: ["blur"] }],
@@ -132,97 +113,93 @@ const open = (id = 0) => {
   if (id === 0) return (state.is_edit = true);
   if (id > 0) {
     state.id = id;
-    get_service_info();
+    get_service_opt();
   }
 };
 
 const close = () => (state.is_edit = false);
 
 // 获取初始信息
-const get_service_info = () => {
+const get_service_opt = () => {
   state.load_all = true;
   const id = state.id;
-  req.get(`${urls.services_detail}/id/${id}`, ({ detail }) => {
-    detail;
-    const { birth_date, work_date } = detail;
-    state.ruleForm = { ...detail };
-    console.log({ birth_date, work_date });
-    state.ruleForm.birth_date = birth_date == "0000-00-00" ? "" : birth_date;
-    state.ruleForm.work_date = work_date == "0000-00-00" ? "" : work_date;
+  req.get(`${urls.services_options}/id/${id}`, ({ data }) => {
+    state.ruleForm = { ...data };
     state.rights_selected.clear();
-    console.log(detail, state.rights_selected);
     state.load_all = false;
+    console.log(state.ruleForm);
   });
   req.get(`${urls.services_options}/id/${id}`, ({ data }) => state.options = data)
 };
 
 const submit_form = async () => {
-  formRef.value.validate((valid, err) => {
-    if (!valid) {
-      for (const k in err) {
-        showMsg.err(err[k][0].message);
-        break;
-      }
-      return;
-    }
-    const {
-      avatar,
-      name,
-      phone,
-      address,
-      intro,
-      gender,
-      id_code,
-      pinyin,
-      pym,
-      birth_date,
-      work_date,
-      grade,
-      origin,
-      workee,
-      note,
-    } = state.ruleForm;
-    const id = state.id;
-    const url = state.id == 0 ? urls.employee_add : urls.employee_alter;
-    const method = state.id == 0 ? "post" : "put";
-    // return console.log({name,phone,address,intro,gender,id_code,pinyin,pym,birth_date,work_date,grade,id});
-    req[method](
-      url,
-      {
-        avatar,
-        name,
-        phone,
-        address,
-        intro,
-        gender,
-        id_code,
-        pinyin,
-        pym,
-        birth_date,
-        work_date,
-        grade,
-        id,
-        origin,
-        workee,
-        note,
-      },
-      (d) => {
-        state.is_edit = false;
-        state.disable_close = false;
-        state.ruleForm = {
-          name: "",
-        };
-        state.rights_selected.clear();
-        state.id = -1;
-        showMsg.succ("提交成功！");
-        emit("reload", true);
-      },
-      (e) => {
-        console.warn(e);
-        state.disable_close = false;
-      }
-    );
-  });
+  console.log(formRef);
+  // formRef.value.validate((valid, err) => {
+  //   if (!valid) {
+  //     for (const k in err) {
+  //       showMsg.err(err[k][0].message);
+  //       break;
+  //     }
+  //     return;
+  //   }
+  //   const {
+  //     avatar,
+  //     name,
+  //     phone,
+  //     address,
+  //     intro,
+  //     gender,
+  //     id_code,
+  //     pinyin,
+  //     pym,
+  //     birth_date,
+  //     work_date,
+  //     grade,
+  //     origin,
+  //     workee,
+  //     note,
+  //   } = state.ruleForm;
+  //   const id = state.id;
+  //   const url = state.id == 0 ? urls.employee_add : urls.employee_alter;
+  //   const method = state.id == 0 ? "post" : "put";
+  //   // return console.log({name,phone,address,intro,gender,id_code,pinyin,pym,birth_date,work_date,grade,id});
+  //   req[method](
+  //     url,
+  //     {
+  //       avatar,
+  //       name,
+  //       phone,
+  //       address,
+  //       intro,
+  //       gender,
+  //       id_code,
+  //       pinyin,
+  //       pym,
+  //       birth_date,
+  //       work_date,
+  //       grade,
+  //       id,
+  //       origin,
+  //       workee,
+  //       note,
+  //     },
+  //     (d) => {
+  //       state.is_edit = false;
+  //       state.disable_close = false;
+  //       state.ruleForm = {
+  //         name: "",
+  //       };
+  //       state.rights_selected.clear();
+  //       state.id = -1;
+  //       showMsg.succ("提交成功！");
+  //       emit("reload", true);
+  //     },
+  //     (e) => {
+  //       console.warn(e);
+  //       state.disable_close = false;
+  //     }
+  //   );
+  // });
 };
 
 const handleUploadSuccess = (type, response, uploadFile) => {

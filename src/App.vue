@@ -1,22 +1,17 @@
 <template>
-  <div class="layout">
+  <div class="layout" v-cloak>
     <router-view />
   </div>
+  <el-empty class="v-cloak-c" description="加载中..." />
 </template>
 
 <script setup>
-import { reactive, onMounted, getCurrentInstance } from "vue";
+import { onMounted, getCurrentInstance } from "vue";
 import { useRouter } from "vue-router";
-import { localSet, pathMap } from "@/utils";
+import { localSet } from "@/utils";
 import axios from "axios";
 
-const noMenu = ["/login"];
 const router = useRouter();
-const state = reactive({
-  showMenu: true,
-  defaultOpen: ["1", "2", "3", "4"],
-  currentPath: "/",
-});
 
 const {urls} = getCurrentInstance().appContext.config.globalProperties;
 
@@ -43,6 +38,7 @@ body {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+  font: 14px Helvetica Neue, Helvetica, PingFang SC, Tahoma, Arial, sans-serif;
 }
 
 .bg-green .el-card,
@@ -92,4 +88,7 @@ a {
 .el-popper__arrow {
   display: none;
 }
+[v-cloak] { display: none }
+[v-cloak] + .v-cloak-c { display: flex }
+.v-cloak-c { display: none }
 </style>

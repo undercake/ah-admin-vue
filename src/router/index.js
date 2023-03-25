@@ -14,7 +14,7 @@ const router = createRouter({
     },
     {
       path: '/dashboard',
-      name: 'dashboard',
+      name: '加载中...',
       component: () => import(/* webpackChunkName: "dashboard" */ '../views/Index.vue')
     },
     {
@@ -61,6 +61,11 @@ const router = createRouter({
       path: '/services_list',
       name: 'Services_list',
       component: () => import(/* webpackChunkName: "Services_list" */ '../views/Services_list.vue')
+    },
+    {
+      path: '/services_category',
+      name: 'Services_category',
+      component: () => import(/* webpackChunkName: "Services_category" */ '../views/Services_category.vue')
     },
 
     ////

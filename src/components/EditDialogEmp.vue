@@ -6,6 +6,7 @@
     center
     :close-on-click-modal="false"
   >
+    <el-skeleton :rows="5" animated v-if="state.emp_load" />
     <el-form
       :model="state.ruleForm"
       :rules="state.rules"
@@ -50,7 +51,7 @@
       <el-form-item label="手机号" prop="phone">
         <el-input type="text" v-model="state.ruleForm.phone"></el-input>
       </el-form-item>
-      <el-form-item label="身份证号" prop="phone">
+      <el-form-item label="身份证号" prop="id_code">
         <el-input type="text" v-model="state.ruleForm.id_code"></el-input>
       </el-form-item>
       <el-form-item label="现住址" prop="address">
@@ -128,7 +129,6 @@
             </el-upload>
       </el-form-item>
     </el-form>
-    <el-skeleton :rows="3" animated v-if="state.emp_load" />
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="close" :disabled="state.disable_close"

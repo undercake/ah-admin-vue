@@ -59,7 +59,7 @@ const { urls, req, getRouteName, mittBus, getUserRights } =
   app.appContext.config.globalProperties;
 const router = useRouter();
 const state = reactive({
-  name: "dashboard",
+  name: "加载中...",
   userInfo: { nickName: "", groupName: "" }, // 用户信息变量
   hasBack: false, // 是否展示返回icon
   path: "",

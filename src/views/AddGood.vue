@@ -119,7 +119,7 @@ import WangEditor from "wangeditor";
 import axios from "@/utils/axios";
 import { ElMessage } from "element-plus";
 import { useRoute, useRouter } from "vue-router";
-import { localGet, uploadImgServer, uploadImgsServer } from "@/utils";
+// import { localGet, uploadImgServer, uploadImgsServer } from "@/utils";
 import Layout from "@/components/Layout.vue";
 
 const { proxy } = getCurrentInstance();

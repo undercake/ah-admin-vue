@@ -1,6 +1,9 @@
 <template>
   <Layout>
-    <el-card class="category-container" v-loading="state.loading">
+    <el-card class="category-container" v-if="state.firstLoading">
+      <el-skeleton :rows="8" animated />
+    </el-card>
+    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleAdd">
@@ -23,6 +26,14 @@
           <el-button type="primary" @click="getData(state.currentPage)">
             <i class="fa fa-solid fa-arrows-rotate"></i>
             刷新
+          </el-button>
+          <el-button type="success" @click="handleQuickEdit(0, 1)">
+            <i class="fa fa-solid fa-up"></i>
+            批量上架
+          </el-button>
+          <el-button type="info" @click="handleQuickEdit(0, 0)">
+            <i class="fa fa-solid fa-down"></i>
+            批量下架
           </el-button>
         </div>
       </template>
@@ -48,10 +59,28 @@
             {{ state.category[scope.row.class_id] }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220">
+        <el-table-column prop="status" label="上架状态" width="130">
+          <template #default="scope">
+            <i :class="(['fa-solid fa-square-xmark err', 'fa-solid fa-circle-check succ'])[scope.row.status]" />
+            {{ (['已下架', '上架中'])[scope.row.status] }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="160">
           <template #default="scope">
             <a
-              style="cursor: pointer; margin-right: 10px"
+              style="cursor: pointer; margin-right: 10px; display: inline-block;"
+              @click="handleQuickEdit(scope.row.id, scope.row.status == 1 ? 0 : 1)"
+            >
+              快速{{ (['上架', '下架'])[scope.row.status] }}
+            </a>
+            <a
+              style="cursor: pointer; margin-right: 10px; display: inline-block;"
+              @click="editOpt(scope.row.id)"
+            >
+              编辑选项
+            </a>
+            <a
+              style="cursor: pointer; margin-right: 10px; display: inline-block;"
               @click="handleEdit(scope.row.id)"
             >
               修改
@@ -63,7 +92,7 @@
               @confirm="handleDeleteOne(scope.row.id)"
             >
               <template #reference>
-                <a style="cursor: pointer">删除</a>
+                <a style="cursor: pointer; display: inline-block;">删除</a>
               </template>
             </el-popconfirm>
           </template>
@@ -81,6 +110,7 @@
       />
     </el-card>
     <EditDialogServ ref="editRef" @reload="getData(0)" />
+    <EditDialogServOpts ref="optRef" @reload="getData(0)" />
   </Layout>
 </template>
 
@@ -88,11 +118,14 @@
 import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogServ from "@/components/EditDialogServ.vue";
+import EditDialogServOpts from "@/components/EditDialogServOpts.vue";
 
 const editRef = ref(false);
+const optRef = ref(false);
 const { urls, showMsg, req } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  firstLoading: true,
   loading: true,
   tableData: [], // 数据列表
   multipleSelection: [], // 选中项
@@ -125,6 +158,7 @@ const getData = (page = 0) => {
       console.log(d);
       state.tableData = d.data;
       state.loading = false;
+      state.firstLoading = false;
       state.currentPage = d.current_page;
       state.pageSize = d.count_per_page;
       state.total = d.count;
@@ -133,6 +167,7 @@ const getData = (page = 0) => {
     (d) => {
       console.log(d);
       console.error(d);
+      state.firstLoading = false;
       state.loading = false;
       state.empty = "加载错误";
       // showMsg.err('加载错误')
@@ -144,16 +179,38 @@ const handleAdd = () => {
 };
 // 修改分类
 const handleEdit = (id) => editRef.value.open(id);
+
+const editOpt = id => optRef.value.open(id);
+
+const handleQuickEdit = (id, currentStatus) => {
+  if (id === 0 && state.multipleSelection.length === 0) return showMsg.err('您没有选择需要' + (['下架', '上架'])[currentStatus] + '的商品');
+  const afterQ = ()=>{
+    showMsg.succ('更新成功！');
+    getData();
+  };
+  id == 0
+  ? req.post(urls.services_quick_edit, {ids: state.multipleSelection.map(d=>d.id).toString(),status: currentStatus}, afterQ)
+  : req.post(urls.services_quick_edit, {id, status: currentStatus}, afterQ)
+}
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除
 const handleDelete = () => {
   console.log(state.multipleSelection.length);
-};
-// // 单个删除
+  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择要删除的数据！');
+  const ids = state.multipleSelection.map(d=>d.id);
+  req.post(urls.services_delete,{ids}, ()=>getData());
+  }
 const handleDeleteOne = (id) => {
   req.del(urls.services_delete + "/id/" + id, () => getData());
 };
 </script>
 
-<style></style>
+<style scoped>
+  .err{
+    color: var(--el-color-danger-light-3);
+  }
+  .succ{
+    color: var(--el-color-success-light-3);
+  }
+</style>

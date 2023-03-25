@@ -1,6 +1,9 @@
 <template>
   <Layout>
-    <el-card class="account-container" v-loading="state.loading">
+    <el-card class="category-container" v-if="state.firstLoading">
+      <el-skeleton :rows="8" animated />
+    </el-card>
+    <el-card class="account-container" v-if="!state.firstLoading" v-loading="state.loading">
       <el-form
         :model="state.passForm"
         :rules="state.rules"
@@ -78,9 +81,10 @@ const state = reactive({
 const get_data = ()=>{
   state.loading = true;
   req.get(urls.admin_all, d=>{
+    state.firstLoading = false;
     state.user_data = d.data;
     state.loading = false;
-  })
+  }, ()=>state.firstLoading = false)
 }
 onMounted(() => {
   get_data();

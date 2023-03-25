@@ -1,6 +1,9 @@
 <template>
   <Layout>
-    <el-card class="category-container" v-loading="state.loading">
+    <el-card class="category-container" v-if="state.firstLoading">
+      <el-skeleton :rows="8" animated />
+    </el-card>
+    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleAdd"
@@ -79,6 +82,7 @@ import EditDialogGroup from "@/components/EditDialogGroup.vue";
 const editRef = ref(false);
 const { urls, showMsg, req } = getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  firstLoading: true,
   loading: true,
   tableData: [], // 数据列表
   multipleSelection: [], // 选中项
@@ -103,16 +107,14 @@ const getData = (page = 0) => {
       console.log(d);
       state.tableData   = d.grp;
       state.loading     = false;
+      state.firstLoading = false;
       state.currentPage = d.current_page;
       state.pageSize    = d.count_per_page;
       state.total       = d.count;
       state.empty       = '没有数据';
     },
     (d) => {
-      console.log(d);
-      console.trace(d);
-      console.assert(d);
-      console.debug(d);
+      state.firstLoading = false;
       state.loading = false;
       state.empty = '加载错误';
       showMsg.err('加载错误')
@@ -134,33 +136,14 @@ const handleSelectionChange = (val) => {
 };
 // 批量删除
 const handleDelete = () => {
-//   if (!state.multipleSelection.length) {
-//     ElMessage.error("请选择项");
-//     return;
-  }
-//   axios
-//     .delete("/categories", {
-//       data: {
-//         ids: state.multipleSelection.map((i) => i.categoryId),
-//       },
-//     })
-//     .then(() => {
-//       ElMessage.success("删除成功");
-//       getCategory();
-//     });
-// };
+  console.log(state.multipleSelection.length);
+  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择要删除的数据！');
+  const ids = state.multipleSelection.map(d=>d.id);
+  // req.post(urls.group_delete,{ids}, ()=>getData());
+};
 // // 单个删除
 const handleDeleteOne = (id) => {
-//   axios
-//     .delete("/categories", {
-//       data: {
-//         ids: [id],
-//       },
-//     })
-//     .then(() => {
-//       ElMessage.success("删除成功");
-//       getCategory();
-//     });
+  // req.del(urls.group_delete + "/id/" + id, () => getData());
 };
 </script>
 

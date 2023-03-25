@@ -1,6 +1,9 @@
 <template>
   <Layout>
-    <el-card class="category-container" v-loading="state.loading">
+    <el-card class="category-container" v-if="state.firstLoading">
+      <el-skeleton :rows="8" animated />
+    </el-card>
+    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleRec">
@@ -82,6 +85,7 @@ const editRef = ref(false);
 const { urls, showMsg, req } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  firstLoading: true,
   loading: true,
   tableData: [], // 数据列表
   multipleSelection: [], // 选中项
@@ -103,6 +107,7 @@ const getData = (page = 0) => {
   req.get(
     `${urls.admin_deleted}/page/${page}`,
     (d) => {
+      state.firstLoading = false;
       state.tableData = d.data;
       state.loading = false;
       state.currentPage = d.current_page;
@@ -111,6 +116,7 @@ const getData = (page = 0) => {
       state.empty = "没有数据";
     },
     (d) => {
+      state.firstLoading = false;
       console.log(d);
       state.loading = false;
       state.empty = "加载错误";
@@ -151,7 +157,8 @@ const deep_delete = (id = 0) => {
 // // 单个删除
 const handleDeleteOne = (id) => {
   console.log(id);
-  if (id == 0 && state.multipleSelection.length < 1) return showMsg.warn('您没有选择数据！');
+  if (id == 0 && state.multipleSelection.length < 1)
+    return showMsg.warn("您没有选择数据！");
   ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",

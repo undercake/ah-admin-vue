@@ -40,7 +40,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import axios from '@/utils/axios'
-import { localGet, uploadImgServer } from '@/utils'
+// import { localGet, uploadImgServer } from '@/utils'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({

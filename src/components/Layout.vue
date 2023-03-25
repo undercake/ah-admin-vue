@@ -141,4 +141,7 @@ route.afterEach((to) => {
 .cell {
   text-align: center;
 }
+button i.fa{
+  padding-right: .5rem;
+}
 </style>
