@@ -5,6 +5,7 @@
     width="30%"
     center
     :close-on-click-modal="false"
+    :show-close="!state.disable_close"
   >
     <el-form
       :model="state.ruleForm"

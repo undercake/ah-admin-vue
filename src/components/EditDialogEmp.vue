@@ -5,6 +5,7 @@
     width="30%"
     center
     :close-on-click-modal="false"
+    :show-close="!state.disable_close"
   >
     <el-skeleton :rows="5" animated v-if="state.emp_load" />
     <el-form
@@ -349,7 +350,6 @@ const submit_form = async () => {
     const id = state.id;
     const url = state.id == 0 ? urls.employee_add : urls.employee_alter;
     const method = state.id == 0 ? "post" : "put";
-    // return console.log({name,phone,address,intro,gender,id_code,pinyin,pym,birth_date,work_date,grade,id});
     req[method](
       url,
       {

@@ -141,6 +141,9 @@ const urls = {
   services_rec       : BaseUri + "/midas/services/rec",
   services_category  : BaseUri + "/midas/services/category",
   services_options   : BaseUri + "/midas/services/options",
+  services_opt_del   : BaseUri + "/midas/services/opt_del",
+  services_opt_add   : BaseUri + "/midas/services/opt_add",
+  services_opt_edit  : BaseUri + "/midas/services/opt_edit",
   services_quick_edit: BaseUri + "/midas/services/quick_edit",
   rights_list        : BaseUri + "/midas/group/rights",
 };
