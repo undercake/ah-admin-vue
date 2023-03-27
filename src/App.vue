@@ -18,9 +18,12 @@ const {urls} = getCurrentInstance().appContext.config.globalProperties;
 onMounted(()=>{
   axios.get(urls.isLogged)
     .then(({data})=>{
+      const path = router.currentRoute._rawValue.path;
       if (!data.is_login) {
+        if (path != '/index' && path != '/login')
+          localSet('beforeLoin', path);
         router.push({ path: '/login' });
-      }
+      } else if(path == '/login') router.push({ path: '/' });
     })
     .catch(e=>console.log(e));
 })

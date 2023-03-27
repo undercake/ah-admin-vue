@@ -115,7 +115,7 @@ import {
   onBeforeUnmount,
   getCurrentInstance,
 } from "vue";
-import WangEditor from "wangeditor";
+// import WangEditor from "wangeditor";
 import axios from "@/utils/axios";
 import { ElMessage } from "element-plus";
 import { useRoute, useRouter } from "vue-router";
@@ -183,59 +183,59 @@ const state = reactive({
     },
   },
 });
-let instance;
-onMounted(() => {
-  instance = new WangEditor(editor.value);
-  instance.config.showLinkImg = false;
-  instance.config.showLinkImgAlt = false;
-  instance.config.showLinkImgHref = false;
-  instance.config.uploadImgMaxSize = 2 * 1024 * 1024; // 2M
-  instance.config.uploadFileName = "file";
-  instance.config.uploadImgHeaders = {
-    token: state.token,
-  };
-  // 图片返回格式不同，需要自定义返回格式
-  instance.config.uploadImgHooks = {
-    // 图片上传并返回了结果，想要自己把图片插入到编辑器中
-    // 例如服务器端返回的不是 { errno: 0, data: [...] } 这种格式，可使用 customInsert
-    customInsert: function (insertImgFn, result) {
-      console.log("result", result);
-      // result 即服务端返回的接口
-      // insertImgFn 可把图片插入到编辑器，传入图片 src ，执行函数即可
-      if (result.data && result.data.length) {
-        result.data.forEach((item) => insertImgFn(item));
-      }
-    },
-  };
-  instance.config.uploadImgServer = uploadImgsServer;
-  Object.assign(instance.config, {
-    onchange() {
-      console.log("change");
-    },
-  });
-  instance.create();
-  if (id) {
-    axios.get(`/goods/${id}`).then((res) => {
-      const { goods, firstCategory, secondCategory, thirdCategory } = res;
-      state.goodForm = {
-        goodsName: goods.goodsName,
-        goodsIntro: goods.goodsIntro,
-        originalPrice: goods.originalPrice,
-        sellingPrice: goods.sellingPrice,
-        stockNum: goods.stockNum,
-        goodsSellStatus: String(goods.goodsSellStatus),
-        goodsCoverImg: proxy.$filters.prefix(goods.goodsCoverImg),
-        tag: goods.tag,
-      };
-      state.categoryId = goods.goodsCategoryId;
-      state.defaultCate = `${firstCategory.categoryName}/${secondCategory.categoryName}/${thirdCategory.categoryName}`;
-      if (instance) {
-        // 初始化商品详情 html
-        instance.txt.html(goods.goodsDetailContent);
-      }
-    });
-  }
-});
+// let instance;
+// onMounted(() => {
+//   instance = new WangEditor(editor.value);
+//   instance.config.showLinkImg = false;
+//   instance.config.showLinkImgAlt = false;
+//   instance.config.showLinkImgHref = false;
+//   instance.config.uploadImgMaxSize = 2 * 1024 * 1024; // 2M
+//   instance.config.uploadFileName = "file";
+//   instance.config.uploadImgHeaders = {
+//     token: state.token,
+//   };
+//   // 图片返回格式不同，需要自定义返回格式
+//   instance.config.uploadImgHooks = {
+//     // 图片上传并返回了结果，想要自己把图片插入到编辑器中
+//     // 例如服务器端返回的不是 { errno: 0, data: [...] } 这种格式，可使用 customInsert
+//     customInsert: function (insertImgFn, result) {
+//       console.log("result", result);
+//       // result 即服务端返回的接口
+//       // insertImgFn 可把图片插入到编辑器，传入图片 src ，执行函数即可
+//       if (result.data && result.data.length) {
+//         result.data.forEach((item) => insertImgFn(item));
+//       }
+//     },
+//   };
+//   instance.config.uploadImgServer = uploadImgsServer;
+//   Object.assign(instance.config, {
+//     onchange() {
+//       console.log("change");
+//     },
+//   });
+//   instance.create();
+//   if (id) {
+//     axios.get(`/goods/${id}`).then((res) => {
+//       const { goods, firstCategory, secondCategory, thirdCategory } = res;
+//       state.goodForm = {
+//         goodsName: goods.goodsName,
+//         goodsIntro: goods.goodsIntro,
+//         originalPrice: goods.originalPrice,
+//         sellingPrice: goods.sellingPrice,
+//         stockNum: goods.stockNum,
+//         goodsSellStatus: String(goods.goodsSellStatus),
+//         goodsCoverImg: proxy.$filters.prefix(goods.goodsCoverImg),
+//         tag: goods.tag,
+//       };
+//       state.categoryId = goods.goodsCategoryId;
+//       state.defaultCate = `${firstCategory.categoryName}/${secondCategory.categoryName}/${thirdCategory.categoryName}`;
+//       if (instance) {
+//         // 初始化商品详情 html
+//         instance.txt.html(goods.goodsDetailContent);
+//       }
+//     });
+//   }
+// });
 onBeforeUnmount(() => {
   instance.destroy();
   instance = null;

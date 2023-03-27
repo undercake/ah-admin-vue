@@ -1,13 +1,18 @@
 <template>
   <el-dialog
     :model-value="state.is_edit"
-    title="编辑服务"
     width="40%"
     center
     :close-on-click-modal="false"
-    :show-close="!state.disable_close"
+    :show-close="false"
     v-loading="state.emp_load"
   >
+    <template #header>
+      <span role="heading" class="el-dialog__title">编辑选项</span>
+      <button aria-label="el.dialog.close" class="el-dialog__headerbtn" type="button" :disabled="!state.disable_close" @click="handleClose">
+        <i class="el-icon el-dialog__close fa-solid fa-xmark-large fa-fw" />
+      </button>
+    </template>
     <el-skeleton :rows="3" animated v-if="state.firstLoading" />
     <div class="serv-opt-scro" v-if="!state.firstLoading">
       <el-scrollbar>
@@ -31,7 +36,7 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button
-          @click="close"
+          @click="handleClose"
           :disabled="state.disable_close"
           type="primary"
         >
@@ -42,12 +47,14 @@
   </el-dialog>
 </template>
 <script setup>
-import { reactive, getCurrentInstance } from "vue";
+import { reactive, getCurrentInstance, onMounted } from "vue";
 import ServOpts from "./ServOpts.vue";
 
-const { urls, req, showMsg, hasRights } =
+const { urls, req, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
 
+const emit = defineEmits(['closed']);
+const props = defineProps(['id']);
 const state = reactive({
   id: -1,
   is_edit: false,
@@ -71,21 +78,6 @@ const rules = {
   name: [{ required: "true", message: "服务名称不能为空", trigger: ["blur"] }],
   intro: [{ required: "true", message: "简介不能为空", trigger: ["blur"] }],
 };
-// 开启编辑窗口
-const open = (id = 0) => {
-  console.log(hasRights("/services/edit"));
-  if (!hasRights("/services/edit")) return showMsg.err("您没有权限编辑此项目");
-  state.is_edit = true;
-  if (id === state.id) return (state.is_edit = true);
-  if (id === 0) return (state.is_edit = true);
-  if (id > 0) {
-    state.id = id;
-    get_service_opt();
-  }
-};
-
-const close = () => (state.is_edit = false);
-
 // 获取初始信息
 const get_service_opt = () => {
   state.firstLoading = false;
@@ -106,6 +98,18 @@ const get_service_opt = () => {
   );
 };
 
+onMounted(() => {
+  state.is_edit = true;
+  state.id = props['id'];
+  console.log(state);
+  get_service_opt();
+});
+
+const handleClose = e => {
+  state.is_edit = false;
+  emit('closed', e);
+}
+
 const handleAdd = () => {
   console.log(state.ruleForm);
   state.ruleForm.push({
@@ -122,18 +126,30 @@ const handleAdd = () => {
 };
 
 const handleDelete = (index) => {
+  status_loading(true);
   const data = state.ruleForm[index];
+  console.log(data);
   if (data.id == 0)
     state.ruleForm = state.ruleForm.filter((e, i) => index !== i);
-  else req.del(urls.services_opt_del, (d) => {
+  else req.del(urls.services_opt_del + '/id/' + data.id, (d) => {
     get_service_opt();
-    showMsg.succ('操作成功')
-  });
+    showMsg.succ('操作成功');
+      status_loading(false);
+  }, e=> status_loading(false));
 };
 
+const status_loading = e => {
+  if (e === false) return setTimeout(() => {
+    state.disable_close = e;
+    state.emp_load = e
+  }, 500);
+  state.disable_close = e;
+  state.emp_load = e
+}
+
 const handleChange = (i) => {
-  state.disable_close = true;
   state.ruleForm[i].edit = true;
+  status_loading(true);
   const { id, name, price_intro, min_num, wai_num, image, deleted, formRef } =
     state.ruleForm[i];
   const url = id == 0 ? urls.services_opt_add : urls.services_opt_edit;
@@ -151,17 +167,15 @@ const handleChange = (i) => {
     },
     (d) => {
       get_service_opt();
-      state.disable_close = false;
+      status_loading(false);
       showMsg.succ('操作成功');
     },
     (e) => {
-      state.disable_close = false;
       state.ruleForm[i].edit = false;
+      status_loading(false);
     }
   );
 };
-
-defineExpose({ open, close });
 </script>
 <style scoped>
 .dialog-footer button:first-child {
@@ -203,6 +217,9 @@ img.img {
   /* box-shadow: 0 0 rgba(0, 0, 0, 0.12), 0 0 0 rgba(14, 20, 25, 0.12),
     inset -2px -2px 10px rgba(14, 20, 25, 0.12),
     inset 2px 2px 10px rgba(0, 0, 0, 0.12); */
+}
+.el-dialog__headerbtn:hover {
+  color: var(--el-color-primary-light-3);
 }
 </style>
 <style>

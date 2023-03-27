@@ -35,6 +35,7 @@
         :on-success="handleUploadSuccess"
         :before-upload="beforeUpload"
         accept="image/*"
+        on-progress="handleProg"
       >
         <img v-if="value.image != ''" :src="value.image" class="image" />
         <i v-else class="fa fa-regular fa-plus-large"></i>
@@ -100,6 +101,8 @@ const handleChange = (e) => {
 
 // 删除
 const handleDelete = (e) => emit("delete", e);
+
+const handleProg = (...e)=> console.log(e);
 
 // 上传成功
 const handleUploadSuccess = (response, uploadFile) => {

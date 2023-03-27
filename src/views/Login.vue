@@ -22,11 +22,12 @@
 <script setup>
 import Login from "@/components/Login.vue";
 import { useRouter } from "vue-router";
+import { localGet } from "../utils";
 
 const router = useRouter();
 const to_log = e=>{
-  console.log(e);
-  router.push("/");
+  const nextPath = localGet('beforeLoin', '/');
+  router.push(nextPath);
 }
 </script>
 

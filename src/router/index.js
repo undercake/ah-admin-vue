@@ -111,6 +111,11 @@ const router = createRouter({
         }
       ]
     },
+    // {
+    //   path: '/addgood',
+    //   name: 'addgood',
+    //   component: () => import(/* webpackChunkName: "new" */ '../views/AddGood.vue')
+    // },
     {
       path: '/good',
       name: 'good',

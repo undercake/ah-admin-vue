@@ -8,6 +8,8 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "0.21.1",
     "echarts": "^5.4.1",
     "element-plus": "^2.2.17",
@@ -17,8 +19,7 @@
     "unplugin-vue-components": "^0.22.7",
     "vue": "^3.2.39",
     "vue-echarts": "^6.5.4",
-    "vue-router": "^4.1.5",
-    "wangeditor": "^4.6.15"
+    "vue-router": "^4.1.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "2.3.3",

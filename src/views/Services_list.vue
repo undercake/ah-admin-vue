@@ -75,15 +75,15 @@
             </a>
             <a
               style="cursor: pointer; margin-right: 10px; display: inline-block;"
-              @click="editOpt(scope.row.id)"
+              @click="handleEdit(scope.row.id)"
             >
-              编辑选项
+              服务修改
             </a>
             <a
               style="cursor: pointer; margin-right: 10px; display: inline-block;"
-              @click="handleEdit(scope.row.id)"
+              @click="editOpt(scope.row.id)"
             >
-              修改
+              选项修改
             </a>
             <el-popconfirm
               title="确定删除吗？"
@@ -109,8 +109,8 @@
         @current-change="getData"
       />
     </el-card>
-    <EditDialogServ ref="editRef" @reload="getData(0)" />
-    <EditDialogServOpts ref="optRef" @reload="getData(0)" />
+    <EditDialogServ v-if="state.edit_serv !== 0" :id="state.edit_serv" @closed="handleClosed" @reload="getData(0)" />
+    <EditDialogServOpts v-if="state.edit_opts !== 0" :id="state.edit_opts" @closed="handleClosed" />
   </Layout>
 </template>
 
@@ -120,29 +120,31 @@ import Layout from "@/components/Layout.vue";
 import EditDialogServ from "@/components/EditDialogServ.vue";
 import EditDialogServOpts from "@/components/EditDialogServOpts.vue";
 
-const editRef = ref(false);
-const optRef = ref(false);
-const { urls, showMsg, req } =
+const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
-  firstLoading: true,
-  loading: true,
-  tableData: [], // 数据列表
-  multipleSelection: [], // 选中项
-  total: 0, // 总条数
-  currentPage: 1, // 当前页
-  pageSize: 20, // 分页大小
-  type: "add", // 操作类型
-  level: 1,
-  parent_id: 0,
-  empty: "没有数据",
-  category: [],
+    edit_serv        : 0,
+    edit_opts        : 0,
+    firstLoading     : true,
+    loading          : true,
+    tableData        : [],       // 数据列表
+    multipleSelection: [],       // 选中项
+    total            : 0,        // 总条数
+    currentPage      : 1,        // 当前页
+    pageSize         : 20,       // 分页大小
+    type             : "add",    // 操作类型
+    level            : 1,
+    parent_id        : 0,
+    empty            : "没有数据",
+    category         : [],
 });
 onMounted(() => {
   getData();
 });
 // 获取数据
 const getData = (page = 0) => {
+  state.edit_opts = 0;
+  state.edit_serv = 0;
   if (page === 0) page = state.currentPage;
   state.loading = true;
   req.get(urls.services_category, (d) => {
@@ -178,10 +180,14 @@ const handleAdd = () => {
   editRef.value.open(0);
 };
 // 修改分类
-const handleEdit = (id) => editRef.value.open(id);
+const handleEdit = (id) => {
+  if (!hasRights("/services/edit")) return showMsg.err("您没有权限编辑此项目");
+  state.edit_serv = id;
+}
 
-const editOpt = id => optRef.value.open(id);
-
+const editOpt = id => {
+  state.edit_opts = id;
+}
 const handleQuickEdit = (id, currentStatus) => {
   if (id === 0 && state.multipleSelection.length === 0) return showMsg.err('您没有选择需要' + (['下架', '上架'])[currentStatus] + '的商品');
   const afterQ = ()=>{
@@ -204,6 +210,11 @@ const handleDelete = () => {
 const handleDeleteOne = (id) => {
   req.del(urls.services_delete + "/id/" + id, () => getData());
 };
+
+const handleClosed = ()=> {
+  state.edit_opts = 0;
+  state.edit_serv = 0;
+  }
 </script>
 
 <style scoped>
