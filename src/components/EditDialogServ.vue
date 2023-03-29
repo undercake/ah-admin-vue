@@ -118,12 +118,6 @@
               />
               <span class="el-upload-list__item-actions">
                 <span
-                  class="el-upload-list__item-preview"
-                  @click="handlePictureCardPreview(file)"
-                >
-                  <i class="fa-regular fa-magnifying-glass-plus el-icon" />
-                </span>
-                <span
                   class="el-upload-list__item-delete"
                   @click="handleRemove(file)"
                 >
@@ -141,7 +135,6 @@
           </div>
           <Toolbar
             style="border-bottom: 1px solid #ccc"
-            ref="toolbar_ref"
             :editor="editorRef"
             :mode="mode"
             :defaultConfig="editBarConf"
@@ -172,9 +165,6 @@
       </span>
     </template>
   </el-dialog>
-  <el-dialog v-model="state.dialogVisible">
-    <img w-full :src="state.dialogImageUrl" alt="Preview Image" />
-  </el-dialog>
 </template>
 <script setup>
 import {
@@ -188,7 +178,7 @@ import {
 import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
 import "@wangeditor/editor/dist/css/style.css";
 
-const { urls, req, showMsg, hasRights } =
+const { urls, req, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
 const emit = defineEmits(["closed", "reload"]);
 const props = defineProps(["id"]);
@@ -223,7 +213,6 @@ const rules = {
   intro: [{ required: "true", message: "简介不能为空", trigger: ["blur"] }],
 };
 
-const toolbar_ref = ref();
 const editor_ref = ref();
 const editBarConf = {
   excludeKeys: ["codeBlock", "fullScreen", "todo"],
@@ -273,18 +262,6 @@ onUnmounted(() => {
   editorRef.value && editorRef.value.destroy();
 });
 
-// 开启编辑窗口
-const open = (id = 0) => {
-  console.log(hasRights("/services/edit"));
-  if (!hasRights("/services/edit")) return showMsg.err("您没有权限编辑此项目");
-  state.is_edit = true;
-  if (id === state.id) return (state.is_edit = true);
-  if (id === 0) return (state.is_edit = true);
-  if (id > 0) {
-    state.id = id;
-  }
-};
-
 // 获取初始信息
 const get_service_info = () => {
   state.load_all = true;
@@ -320,11 +297,6 @@ const get_service_info = () => {
   req.get(urls.services_category, ({ data }) => (state.category = data));
 };
 
-const handlePictureCardPreview = (file) => {
-  dialogImageUrl.value = file.url;
-  dialogVisible.value = true;
-};
-
 const setPath = (uid, path) =>
   state.ruleForm.banner.forEach((d, i) => {
     if (d.uid == uid)
@@ -333,10 +305,6 @@ const setPath = (uid, path) =>
 
 const submit_form = async () => {
   state.uploading = true;
-  console.log(toolbar_ref);
-  console.log(toolbar_ref.value.editor.getConfig());
-  // toolbar.getConfig();
-  console.log(editor_ref);
   Promise.all(
     state.ruleForm.banner
       .filter((e) => e.status == "ready")
@@ -356,9 +324,20 @@ const submit_form = async () => {
           })
       )
   )
-    .then((e) => {console.log('t',e); state.uploading = false;state.progress = 0})
-    .catch((e) => {console.log('c',e); state.uploading = false;state.progress = 0});
+    .then((e) => {
+      console.log('t',e);
+      state.uploading = false;
+      state.progress = 0;
+      submit_data();
+    })
+    .catch((e) => {
+      console.log('c',e);
+      state.uploading = false;
+      state.progress = 0;
+    });
   return console.log(state.ruleForm);
+}
+const submit_data = ()=>{
   formRef.value.validate((valid, err) => {
     if (!valid) {
       for (const k in err) {
@@ -376,15 +355,15 @@ const submit_form = async () => {
     req[method](
       url,
       {
+        id,
         avatar,
-        banner: banner.toString(),
+        banner: banner.map(({url}) => url).toString(),
         class_id,
         details,
-        id,
-        intro,
+        intro: intro.replace(/<([a-z]+?)(?:\s+?[^>]*?)?>\s*?<\/\1>/ig, ""),
         name,
         prompt,
-        status,
+        status
       },
       (d) => {
         state.is_edit = false;

@@ -3,14 +3,25 @@
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
-    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
+    <el-card
+      class="category-container"
+      v-if="!state.firstLoading"
+      v-loading="state.loading"
+    >
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd"
-            >
+          <el-button type="primary" @click="handleAdd">
             <i class="fa fa-solid fa-plus"></i>
-            增加</el-button
-          >
+            增加
+          </el-button>
+          <el-button type="success" @click="handleQuickEdit(0, 1)">
+            <i class="fa fa-solid fa-up"></i>
+            批量上架
+          </el-button>
+          <el-button type="info" @click="handleQuickEdit(0, 0)">
+            <i class="fa fa-solid fa-down"></i>
+            批量下架
+          </el-button>
           <el-popconfirm
             title="确定删除吗？"
             confirmButtonText="确定"
@@ -20,7 +31,8 @@
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量删除</el-button>
+                批量删除</el-button
+              >
             </template>
           </el-popconfirm>
           <el-button type="primary" @click="getData(state.currentPage)"
@@ -36,21 +48,65 @@
         style="width: 100%"
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection"> </el-table-column>
-        <el-table-column prop="name" label="类目名称"> </el-table-column>
+        <el-table-column type="selection" />
+        <el-table-column prop="name" label="类目名称">
+          <template #default="scope">
+            <div class="cell cell-edit" v-if="scope.row.id == state.edit_cat">
+              <el-input
+                v-model="state.tmpChName"
+                placeholder="请填写类目名称"
+              />
+              <el-button
+                type="success"
+                @click="
+                  changeName(scope.row.id, state.tmpChName)
+                "
+              >
+                确定
+              </el-button>
+              <el-button type="info" @click="cancelChangeName">
+                取消
+              </el-button>
+            </div>
+            <div class="cell" v-else>
+              {{ scope.row.name }}
+              <a
+                style="cursor: pointer; margin-right: 10px"
+                @click="handleEdit(scope.row.id, scope.row.name)"
+              >
+                修改
+              </a>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="上架状态" width="130">
           <template #default="scope">
-            <i :class="(['fa-solid fa-square-xmark err', 'fa-solid fa-circle-check succ'])[scope.row.status]" />
-            {{ (['已下架', '上架中'])[scope.row.status] }}
+            <el-button
+              style="width: 100%"
+              @mouseleave="handle_hover(scope.$index, false)"
+              @mouseenter="handle_hover(scope.$index, true)"
+              v-if="scope.$index == state.hover_id"
+              @click="
+                handleQuickEdit(scope.row.id, scope.row.status == 1 ? 0 : 1)
+              "
+              :type="['success', 'danger'][scope.row.status]"
+            >
+              {{ "点击" + ["上架", "下架"][scope.row.status] }}
+            </el-button>
+            <el-button
+              style="width: 100%"
+              @mouseleave="handle_hover(scope.$index, false)"
+              @mouseenter="handle_hover(scope.$index, true)"
+              v-else
+              :type="['danger', 'success'][scope.row.status]"
+              plain
+            >
+              {{ ["已下架", "上架中"][scope.row.status] }}
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="220">
           <template #default="scope">
-            <a
-              style="cursor: pointer; margin-right: 10px"
-              @click="handleEdit(scope.row.id)"
-              >修改</a
-            >
             <el-popconfirm
               title="确定删除吗？"
               confirmButtonText="确定"
@@ -68,25 +124,26 @@
       <el-pagination
         background
         layout="prev, pager, next"
-        :disabled="state.tableData.length == 0"
+        v-if="state.total > 10"
         :total="state.total"
         :page-size="state.pageSize"
         :current-page="state.currentPage"
         @current-change="changePage"
       />
     </el-card>
-    <EditDialogGroup ref="editRef" @reload="getData(0)" />
   </Layout>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, getCurrentInstance } from "vue";
+import { onMounted, reactive, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
-import EditDialogGroup from "@/components/EditDialogGroup.vue";
 
-const editRef = ref(false);
-const { urls, showMsg, req } = getCurrentInstance().appContext.config.globalProperties;
+const { urls, showMsg, req } =
+  getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  tmpChName:'',
+  hover_id: -1,
+  edit_cat: -1,
   firstLoading: true,
   loading: true,
   tableData: [], // 数据列表
@@ -97,7 +154,7 @@ const state = reactive({
   type: "add", // 操作类型
   level: 1,
   parent_id: 0,
-  empty: '没有数据'
+  empty: "没有数据",
 });
 onMounted(() => {
   getData();
@@ -110,19 +167,19 @@ const getData = (page = 0) => {
     `${urls.services_category}/page/${page}`,
     (d) => {
       console.log(d);
-      state.tableData    = d.data;
-      state.loading      = false;
+      state.tableData = d.data;
+      state.loading = false;
       state.firstLoading = false;
-      state.currentPage  = d.current_page;
-      state.pageSize     = d.count_per_page;
-      state.total        = d.count;
-      state.empty        = '没有数据';
+      state.currentPage = d.current_page;
+      state.pageSize = d.count_per_page;
+      state.total = d.count;
+      state.empty = "没有数据";
     },
     (d) => {
       state.firstLoading = false;
       state.loading = false;
-      state.empty = '加载错误';
-      showMsg.err('加载错误')
+      state.empty = "加载错误";
+      showMsg.err("加载错误");
     }
   );
 };
@@ -130,23 +187,59 @@ const changePage = (val) => {
   state.currentPage = val;
   getData(val);
 };
-const handleAdd = () => {
-  editRef.value.open(0)
-};
+const handleAdd = () => (state.edit_cat = 0);
 // 修改分类
-const handleEdit = (id) => editRef.value.open(id);
+const handleEdit = (id, name) => {
+  state.edit_cat = id;
+  state.tmpChName = name;
+  console.log(id,name);
+  };
+const changeName = (id, name) =>
+  req.post(urls.services_cat_name, { id, name }, (d) => {
+    showMsg.succ("提交成功");
+    getData();
+    state.edit_cat = -1;
+  }, o=>{
+    console.log(o);
+    state.edit_cat = -1});
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除
 const handleDelete = () => {
   console.log(state.multipleSelection.length);
-  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择要删除的数据！');
-  const ids = state.multipleSelection.map(d=>d.id);
-  req.post(urls.services_delete,{ids}, ()=>getData());
-  }
-const handleDeleteOne = (id) => {
-  req.del(urls.services_delete + "/id/" + id, () => getData());
+  if (state.multipleSelection.length < 1)
+    return showMsg.warn("您没有选择要删除的数据！");
+  const ids = state.multipleSelection.map((d) => d.id);
+  req.post(urls.services_cat_del, { ids }, () => getData());
 };
+const handleDeleteOne = (id) => {
+  req.del(urls.services_cat_del + "/id/" + id, () => getData());
+};
+const handleQuickEdit = (id, newStatus) => {
+  if (id === 0 && state.multipleSelection.length === 0)
+    return showMsg.err(
+      "您没有选择需要" + ["下架", "上架"][newStatus] + "的商品"
+    );
+  const afterQ = () => {
+    showMsg.succ("更新成功！");
+    getData();
+  };
+  id == 0
+    ? req.post(
+        urls.services_quick_ch_cat,
+        {
+          ids: state.multipleSelection.map((d) => d.id).toString(),
+          status: newStatus,
+        },
+        afterQ
+      )
+    : req.post(urls.services_quick_ch_cat, { id, status: newStatus }, afterQ);
+};
+const cancelChangeName = () => {
+  state.edit_cat = -1;
+  state.tmpChName = '';
+};
+const handle_hover = (i, s) => (state.hover_id = s ? i : -1);
 </script>
 
 <style></style>

@@ -8,8 +8,6 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@wangeditor/editor": "^5.1.23",
-    "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "0.21.1",
     "echarts": "^5.4.1",
     "element-plus": "^2.2.17",
