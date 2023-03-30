@@ -71,8 +71,7 @@ const state = reactive({
       image: "",
       deleted: 0,
     },
-  ],
-  rights_selected: new Set([]),
+  ]
 });
 const rules = {
   name: [{ required: "true", message: "服务名称不能为空", trigger: ["blur"] }],
@@ -88,7 +87,6 @@ const get_service_opt = () => {
     state.ruleForm.forEach((e, i) => {
       state.ruleForm[i] = { ...e, formRef: false };
     });
-    state.rights_selected.clear();
     state.emp_load = false;
     console.log(state.ruleForm);
   });

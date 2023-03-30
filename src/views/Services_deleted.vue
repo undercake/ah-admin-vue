@@ -37,21 +37,13 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" />
-        <el-table-column prop="name" label="姓名" width="80" />
-        <el-table-column prop="gender" label="性别" width="60">
+        <el-table-column prop="name" label="服务名称" width="200" />
+        <el-table-column prop="intro" label="服务简介" width="" />
+        <el-table-column prop="class_id" label="服务类目" width="180">
           <template #default="scope">
-            {{ (['男', '女'])[scope.row.gender] }}
+            {{ state.category[scope.row.class_id] }}
           </template>
         </el-table-column>
-        <el-table-column prop="phone" label="手机号" width="130">
-          <template #default="scope">
-            {{ scope.row.phone.split(',')[0] }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="origin" label="籍贯" width="170" />
-        <el-table-column prop="address" label="现住址" />
-        <el-table-column prop="intro" label="简介" />
-        <el-table-column prop="note" label="备注" width="130" />
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a
@@ -107,17 +99,26 @@ const state = reactive({
   level: 1,
   parent_id: 0,
   empty: "没有数据",
+  category: [],
 });
 onMounted(() => {
   getData();
 });
 // 获取数据
 const getData = (page = 0) => {
+  state.edit_opts = 0;
+  state.edit_serv = 0;
   if (page === 0) page = state.currentPage;
   state.loading = true;
+  req.get(urls.services_category, (d) => {
+    console.log(d);
+    state.category = [];
+    d.data.forEach(c => state.category[c.id] = c.name);
+  });
   req.get(
-    `${urls.employee_deleted}/page/${page}`,
+    `${urls.services_deleted}/page/${page}`,
     (d) => {
+      console.log(d);
       state.tableData = d.data;
       state.loading = false;
       state.firstLoading = false;
@@ -125,29 +126,38 @@ const getData = (page = 0) => {
       state.pageSize = d.count_per_page;
       state.total = d.count;
       state.empty = "没有数据";
+      req.get(urls.services_options, d=>{
+        const data = d.data;
+        const tmpOpt = [];
+        data.forEach(d=> tmpOpt[d.service_id] = tmpOpt[d.service_id] ? tmpOpt[d.service_id] + 1 : 1);
+        state.opt_count = tmpOpt;
+        console.log(tmpOpt);
+      });
     },
     (d) => {
       console.log(d);
       console.error(d);
-      state.loading = false;
       state.firstLoading = false;
+      state.loading = false;
       state.empty = "加载错误";
     }
   );
 };
+
+
 const handleRec = (id = 0) => {
   const ids = state.multipleSelection.map((d) => d.id);
   const data = id === 0 ? { ids } : { id };
-  req.post(urls.employee_rec, data, () => getData());
+  req.post(urls.services_rec, data, () => getData());
 };
 
 const deep_delete = (id = 0) => {
   if (id === 0)
-    req.post(urls.employee_deep_del, { ids: state.multipleSelection }, () => {
+    req.post(urls.services_deep_del, { ids: state.multipleSelection }, () => {
       showMsg.succ("成功删除！");
       getData();
     });
-  req.del(urls.employee_deep_del + "/id/" + id, () => {
+  req.del(urls.services_deep_del + "/id/" + id, () => {
     showMsg.succ("成功删除！");
     getData();
   });

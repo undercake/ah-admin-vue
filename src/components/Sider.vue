@@ -54,37 +54,37 @@
             <span>首页配置</span>
           </template>
           <el-menu-item-group>
-            <el-menu-item index="/swiper" @click="push_route('/swiper')"
-              >轮播图配置</el-menu-item
-            >
-            <el-menu-item index="/hot" @click="push_route('/hot')"
-              >热销商品配置</el-menu-item
-            >
-            <el-menu-item index="/new" @click="push_route('/new')"
-              >新品上线配置</el-menu-item
-            >
-            <el-menu-item index="/recommend" @click="push_route('/recommend')"
-              >为你推荐配置</el-menu-item
-            >
+            <el-menu-item index="/swiper" @click="push_route('/swiper')">
+              轮播图配置
+            </el-menu-item>
+            <el-menu-item index="/hot" @click="push_route('/hot')">
+              热销商品配置
+            </el-menu-item>
+            <el-menu-item index="/new" @click="push_route('/new')">
+              新品上线配置
+            </el-menu-item>
+            <el-menu-item index="/recommend" @click="push_route('/recommend')">
+              为你推荐配置
+            </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
         <el-sub-menu index="3">
           <template #title>
-            <span>模块管理</span>
+            <span> 模块管理 </span>
           </template>
           <el-menu-item-group>
-            <el-menu-item index="/category" @click="push_route('/category')"
-              >分类管理</el-menu-item
-            >
-            <el-menu-item index="/good" @click="push_route('/good')"
-              >商品管理</el-menu-item
-            >
-            <el-menu-item index="/guest" @click="push_route('/guest')"
-              >会员管理</el-menu-item
-            >
-            <el-menu-item index="/order" @click="push_route('/order')"
-              >订单管理</el-menu-item
-            >
+            <el-menu-item index="/category" @click="push_route('/category')">
+              分类管理
+            </el-menu-item>
+            <el-menu-item index="/good" @click="push_route('/good')">
+              商品管理
+            </el-menu-item>
+            <el-menu-item index="/guest" @click="push_route('/guest')">
+              会员管理
+            </el-menu-item>
+            <el-menu-item index="/order" @click="push_route('/order')">
+              订单管理
+            </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
         <el-sub-menu index="4">
@@ -92,17 +92,13 @@
             <span>系统管理</span>
           </template>
           <el-menu-item-group>
-            <el-menu-item index="/account" @click="push_route('/account')"
-              >修改密码</el-menu-item
-            >
+            <el-menu-item index="/account" @click="push_route('/account')">
+              修改密码
+            </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
+        <el-menu-item index="/account" @click="getRights"> 刷新 </el-menu-item>
       </el-menu>
-      <div class="bottom">
-        <div @click="getRights">
-          <span>刷新</span>
-        </div>
-      </div>
     </el-aside>
   </el-scrollbar>
 </template>
@@ -117,8 +113,8 @@ const { push, currentRoute } = useRouter();
 
 const push_route = (e) => {
   state.path = e;
-  mittBus.emit('routChangeStart', true);
-  mittBus.emit('routeChange', false);
+  mittBus.emit("routChangeStart", true);
+  mittBus.emit("routeChange", false);
   push(e);
 };
 
@@ -143,15 +139,14 @@ const process_data = (d) => {
     }
   });
 };
-const getRights =e=>{
+const getRights = (e) => {
   getUserRights(process_data);
-}
+};
 onMounted(() => {
   let d = localGet("user_rights");
   d ? process_data(d) : getUserRights((e) => process_data(e));
   state.path = currentRoute._rawValue.path;
 });
-
 </script>
 <style scoped>
 .aside {
@@ -195,13 +190,12 @@ i.fa {
 .el-scrollbar .el-scrollbar__view {
   height: 100%;
 }
-.el-menu-item-group ul{
-  box-shadow:  0 0 rgba(0, 0, 0, .3),
-            0 0 0 rgba(14, 20, 25, .4),
-            inset -3px -3px 5px rgba(14, 20, 25, .4),
-            inset 3px 3px 5px rgba(0, 0, 0, .3);
+.el-menu-item-group ul {
+  box-shadow: 0 0 rgba(0, 0, 0, 0.3), 0 0 0 rgba(14, 20, 25, 0.4),
+    inset -3px -3px 5px rgba(14, 20, 25, 0.4),
+    inset 3px 3px 5px rgba(0, 0, 0, 0.3);
 }
-.el-sub-menu.is-opened .el-menu-item-group__title{
+.el-sub-menu.is-opened .el-menu-item-group__title {
   margin: 0;
   padding: 0;
 }

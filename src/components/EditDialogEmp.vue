@@ -217,7 +217,6 @@ const state = reactive({
     workee:'',
     note:''
   },
-  rights_selected: new Set([]),
   rules: {
     name: [{ required: "true", message: "姓名不能为空", trigger: ["blur"] }],
     phone: [
@@ -315,8 +314,6 @@ const get_emp_info = () => {
     console.log({birth_date,work_date});
     state.ruleForm.birth_date = birth_date == '0000-00-00' ? '' : birth_date;
     state.ruleForm.work_date = work_date == '0000-00-00' ? '' : work_date;
-    state.rights_selected.clear();
-    console.log(detail, state.rights_selected);
     state.load_all = false;
   });
 };
@@ -376,7 +373,6 @@ const submit_form = async () => {
         state.ruleForm = {
           name: "",
         };
-        state.rights_selected.clear();
         state.id = -1;
         showMsg.succ("提交成功！");
         emit("reload", true);

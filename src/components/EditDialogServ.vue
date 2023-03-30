@@ -29,7 +29,7 @@
       class="good-form"
       v-if="!state.emp_load"
     >
-      <el-form-item label="头像" prop="avatar">
+      <el-form-item label="封面" prop="avatar">
         <el-upload
           class="avatar-uploader"
           :action="urls.upload_public"
@@ -128,23 +128,16 @@
           </template>
         </el-upload>
       </el-form-item>
-      <el-form-item label="详细信息" prop="details">
+      <el-form-item label="详情" prop="details">
         <div style="border: 1px solid #ccc; border-radius: 5px; padding: 2px 0">
           <div v-if="state.progress > 0">
             <el-progress :percentage="state.progress" />
           </div>
-          <Toolbar
-            style="border-bottom: 1px solid #ccc"
-            :editor="editorRef"
-            :mode="mode"
-            :defaultConfig="editBarConf"
-          />
-          <Editor
-            style="overflow-y: hidden"
-            ref="editor_ref"
+          <ckeditor
             v-model="state.ruleForm.details"
-            :mode="mode"
-            @onCreated="handleCreated"
+            :editor="ClassicEditor"
+            :config="EditConf"
+            @ready="onEditorReady"
           />
         </div>
       </el-form-item>
@@ -171,21 +164,21 @@ import {
   reactive,
   onUnmounted,
   onMounted,
-  getCurrentInstance,
   ref,
-  shallowRef,
+  getCurrentInstance
 } from "vue";
-import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
-import "@wangeditor/editor/dist/css/style.css";
+// import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
+// import "@wangeditor/editor/dist/css/style.css";
+// import Editor from '@tinymce/tinymce-vue'
+import CKEditor from '@ckeditor/ckeditor5-vue';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
+const ckeditor = CKEditor.component;
 const { urls, req, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
 const emit = defineEmits(["closed", "reload"]);
 const props = defineProps(["id"]);
-
-const mode = "simple";
 const formRef = ref(null);
-const editorRef = shallowRef();
 const state = reactive({
   progress: 0,
   dialogVisible: false,
@@ -212,37 +205,17 @@ const rules = {
   name: [{ required: "true", message: "服务名称不能为空", trigger: ["blur"] }],
   intro: [{ required: "true", message: "简介不能为空", trigger: ["blur"] }],
 };
-
-const editor_ref = ref();
-const editBarConf = {
-  excludeKeys: ["codeBlock", "fullScreen", "todo"],
-  MENU_CONF: {
-    uploadImage: {
-      server: urls.upload_public,
-      fieldName: "file",
-      maxFileSize: 1 * 1024 * 1024,
-      maxNumberOfFiles: 1,
-      allowedFileTypes: ["image/jpeg", "image/png"],
-      onProgress(p) {
-        if (p >= 100) p = 0;
-        state.progress = p;
-      },
-      async customUpload(res, insertFn) {
-        const { path } = res;
-        const pathName = path.split("/");
-        insertFn(path, pathName[pathName.length - 1], path);
-      },
-    },
-  },
+const onEditorReady = e=>{
+  console.log(e,ckeditor,ClassicEditor);
+  // console.log(ckeditor.props.config());
+}
+const EditConf = {
+  language: 'zh'
 };
 
 const handleClose = (e) => {
   state.is_edit = false;
   emit("closed", e);
-};
-
-const handleCreated = (editor) => {
-  editorRef.value = editor; // 记录 editor 实例，重要！
 };
 
 const handleRemove = (e) => {
@@ -259,7 +232,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   console.log("des serv");
-  editorRef.value && editorRef.value.destroy();
+  // editorRef.value && editorRef.value.destroy();
 });
 
 // 获取初始信息
@@ -303,7 +276,7 @@ const setPath = (uid, path) =>
       state.ruleForm.banner[i] = { status: "success", uid, url: path };
   });
 
-const submit_form = async () => {
+const submit_form = e => {
   state.uploading = true;
   Promise.all(
     state.ruleForm.banner
@@ -328,7 +301,7 @@ const submit_form = async () => {
       console.log('t',e);
       state.uploading = false;
       state.progress = 0;
-      submit_data();
+      submit_data(e);
     })
     .catch((e) => {
       console.log('c',e);
@@ -337,7 +310,8 @@ const submit_form = async () => {
     });
   return console.log(state.ruleForm);
 }
-const submit_data = ()=>{
+const submit_data = e=>{
+  console.log(state.ruleForm);
   formRef.value.validate((valid, err) => {
     if (!valid) {
       for (const k in err) {
@@ -349,7 +323,7 @@ const submit_data = ()=>{
     const { avatar, banner, class_id, details, intro, name, prompt, status } =
       state.ruleForm;
     const id = state.id;
-    const url = state.id == 0 ? urls.employee_add : urls.employee_alter;
+    const url = state.id == 0 ? urls.services_add : urls.services_alter;
     const method = state.id == 0 ? "post" : "put";
     // return console.log({name,phone,address,intro,gender,id_code,pinyin,pym,birth_date,work_date,grade,id});
     req[method](
@@ -371,10 +345,9 @@ const submit_data = ()=>{
         state.ruleForm = {
           name: "",
         };
-        state.rights_selected.clear();
         state.id = -1;
         showMsg.succ("提交成功！");
-        emit("reload", true);
+        emit("reload", e);
       },
       (e) => {
         console.warn(e);
@@ -470,5 +443,9 @@ img.img {
   height: 80px;
   line-height: 80px;
   text-align: center;
+}
+.ck.ck-editor__main {
+  max-height: 400px;
+  overflow-y: auto;
 }
 </style>

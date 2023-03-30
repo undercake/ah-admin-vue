@@ -1,5 +1,6 @@
 <template>
   <el-dialog
+    v-if="state.is_edit"
     v-model="state.is_edit"
     :title="state.edit_id == 0 ? '添加角色' : '编辑角色'"
     width="30%"
@@ -92,7 +93,7 @@ const open = (id = 0) => {
   console.log(hasRights("/group/edit"));
   if (!hasRights("/group/edit")) return showMsg.err("您没有权限编辑此项目");
     state.is_edit = true;
-  if (state.group_list.length < 1) get_rights();
+    get_rights();
   if (id > 0) {
     state.id = id;
     get_group_info();
@@ -129,27 +130,19 @@ const get_rights = () => {
   state.group_load = true;
   req.get(urls.rights_list, (d) => {
     const data = [];
+    d.data.forEach(r=>r.parent == 0 && (data[r.id] = {...r, children: []}));
+    console.log(data);
     d.data.forEach((r) => {
-      let children = [];
       const { id, parent, type, path, name } = r;
+      console.log({ id, parent, type, path, name });
       if (parent !== 0) {
-        if (!data[parent]) {
-          data[parent] = {
-            ...d.data[parent],
-            children: [{ id, parent, type, path, name, children: [] }],
-          };
-        } else {
-          data[parent].children.push({ id, parent, type, path, name });
-        }
-      } else if (data[id] && data[id].children) {
-        children = data[id].children;
-        data[id] = { id, parent, type, path, name, children };
+        data[parent].children.push({ id, parent, type, path, name });
       }
     });
-    state.right_list = data.filter(e=> e);
+    state.right_list = data.filter(e => e);
     state.group_load = false;
     console.log(state.right_list);
-  });
+  },console.log);
 };
 
 const submit_form = async () => {

@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-03-03 17:20:58
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-03-29 15:45:07
+ * @LastEditTime: 2023-03-30 14:27:25
  * @FilePath: /ah-main-admin/src/main.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -49,56 +49,56 @@ let groups = [];
 const BaseUri = "http://127.0.0.1:3000";
 const urls = {
   BaseUri,
-  captcha              : BaseUri + "/midas/cap/get",
-  login                : BaseUri + "/midas/user/login",
-  isLogged             : BaseUri + "/midas/user/logged",
-  logout               : BaseUri + "/midas/user/logout",
-  userProfile          : BaseUri + "/midas/user/profile",
-  upload_public        : BaseUri + "/midas/uploader/public",
-  upload_private       : BaseUri + "/midas/uploader/private",
-  getUserSideMenu      : BaseUri + "/midas/user/getusersidemenu",
-  admin_list           : BaseUri + "/midas/admin/list",
-  admin_all            : BaseUri + "/midas/admin/all",
-  admin_detail         : BaseUri + "/midas/admin/detail",
-  admin_add            : BaseUri + "/midas/admin/add",
-  admin_alter          : BaseUri + "/midas/admin/alter",
-  admin_delete         : BaseUri + "/midas/admin/delete",
-  admin_deleted        : BaseUri + "/midas/admin/deleted",
-  admin_deep_del       : BaseUri + "/midas/admin/deep_del",
-  admin_pass           : BaseUri + "/midas/admin/pass",
-  admin_rec            : BaseUri + "/midas/admin/rec",
-  group_list           : BaseUri + "/midas/group/list",
-  group_list_all       : BaseUri + "/midas/group/all",
-  group_detail         : BaseUri + "/midas/group/detail",
-  group_add            : BaseUri + "/midas/group/add",
-  group_alter          : BaseUri + "/midas/group/alter",
-  group_delete         : BaseUri + "/midas/group/delete",
-  employee_list        : BaseUri + "/midas/employee/list",
-  employee_detail      : BaseUri + "/midas/employee/detail",
-  employee_add         : BaseUri + "/midas/employee/add",
-  employee_alter       : BaseUri + "/midas/employee/alter",
-  employee_delete      : BaseUri + "/midas/employee/delete",
-  employee_deep_del    : BaseUri + "/midas/employee/deep_del",
-  employee_deleted     : BaseUri + "/midas/employee/deleted",
-  employee_rec         : BaseUri + "/midas/employee/rec",
-  services_list        : BaseUri + "/midas/services/list",
-  services_detail      : BaseUri + "/midas/services/detail",
-  services_add         : BaseUri + "/midas/services/add",
-  services_alter       : BaseUri + "/midas/services/alter",
-  services_delete      : BaseUri + "/midas/services/delete",
-  services_deep_del    : BaseUri + "/midas/services/deep_del",
-  services_deleted     : BaseUri + "/midas/services/deleted",
-  services_rec         : BaseUri + "/midas/services/rec",
-  services_category    : BaseUri + "/midas/services/category",
-  services_options     : BaseUri + "/midas/services/options",
-  services_opt_del     : BaseUri + "/midas/services/opt_del",
-  services_opt_add     : BaseUri + "/midas/services/opt_add",
-  services_opt_edit    : BaseUri + "/midas/services/opt_edit",
-  services_quick_edit  : BaseUri + "/midas/services/quick_edit",
+  captcha: BaseUri + "/midas/cap/get",
+  login: BaseUri + "/midas/user/login",
+  isLogged: BaseUri + "/midas/user/logged",
+  logout: BaseUri + "/midas/user/logout",
+  userProfile: BaseUri + "/midas/user/profile",
+  upload_public: BaseUri + "/midas/uploader/public",
+  upload_private: BaseUri + "/midas/uploader/private",
+  getUserSideMenu: BaseUri + "/midas/user/getusersidemenu",
+  admin_list: BaseUri + "/midas/admin/list",
+  admin_all: BaseUri + "/midas/admin/all",
+  admin_detail: BaseUri + "/midas/admin/detail",
+  admin_add: BaseUri + "/midas/admin/add",
+  admin_alter: BaseUri + "/midas/admin/alter",
+  admin_delete: BaseUri + "/midas/admin/delete",
+  admin_deleted: BaseUri + "/midas/admin/deleted",
+  admin_deep_del: BaseUri + "/midas/admin/deep_del",
+  admin_pass: BaseUri + "/midas/admin/pass",
+  admin_rec: BaseUri + "/midas/admin/rec",
+  group_list: BaseUri + "/midas/group/list",
+  group_list_all: BaseUri + "/midas/group/all",
+  group_detail: BaseUri + "/midas/group/detail",
+  group_add: BaseUri + "/midas/group/add",
+  group_alter: BaseUri + "/midas/group/alter",
+  group_delete: BaseUri + "/midas/group/delete",
+  employee_list: BaseUri + "/midas/employee/list",
+  employee_detail: BaseUri + "/midas/employee/detail",
+  employee_add: BaseUri + "/midas/employee/add",
+  employee_alter: BaseUri + "/midas/employee/alter",
+  employee_delete: BaseUri + "/midas/employee/delete",
+  employee_deep_del: BaseUri + "/midas/employee/deep_del",
+  employee_deleted: BaseUri + "/midas/employee/deleted",
+  employee_rec: BaseUri + "/midas/employee/rec",
+  services_list: BaseUri + "/midas/services/list",
+  services_detail: BaseUri + "/midas/services/detail",
+  services_add: BaseUri + "/midas/services/add",
+  services_alter: BaseUri + "/midas/services/alter",
+  services_delete: BaseUri + "/midas/services/delete",
+  services_deep_del: BaseUri + "/midas/services/deep_del",
+  services_deleted: BaseUri + "/midas/services/deleted",
+  services_rec: BaseUri + "/midas/services/rec",
+  services_category: BaseUri + "/midas/services/category",
+  services_options: BaseUri + "/midas/services/options",
+  services_opt_del: BaseUri + "/midas/services/opt_del",
+  services_opt_add: BaseUri + "/midas/services/opt_add",
+  services_opt_edit: BaseUri + "/midas/services/opt_edit",
+  services_quick_edit: BaseUri + "/midas/services/quick_edit",
   services_quick_ch_cat: BaseUri + "/midas/services/cat_quick_edit",
-  services_cat_del     : BaseUri + "/midas/services/cat_del",
-  services_cat_name     : BaseUri + "/midas/services/cat_name",
-  rights_list          : BaseUri + "/midas/group/rights",
+  services_cat_del: BaseUri + "/midas/services/cat_del",
+  services_cat_name: BaseUri + "/midas/services/cat_name",
+  rights_list: BaseUri + "/midas/group/rights",
 };
 
 const showMsg = {
@@ -149,7 +149,7 @@ const upload = (url, file, prog, succ, err) =>
   axios
     .post(url, createFormData(file), {
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       onUploadProgress: (progressEvent) => {
         if (progressEvent.lengthComputable) {
@@ -160,14 +160,13 @@ const upload = (url, file, prog, succ, err) =>
     .then((res) => handle200(succ, err, res))
     .catch((e) => handle_http_err(e, err));
 
-const createFormData = f=> {
-  const fm = new FormData;
+const createFormData = (f) => {
+  const fm = new FormData();
   const content_len = Math.round((f.size * 100) / 1024) / 100;
   fm.append("Content-Length", content_len);
   fm.append("file", f);
   return fm;
-}
-
+};
 
 const req = {
   get($url, $fb, $err = () => {}) {
@@ -184,63 +183,48 @@ const req = {
   },
   upload,
 };
-
+let timer = 0;
+let gur_arr = [];
 const getUserRights = (fun = () => {}) => {
-  req.get(urls.getUserSideMenu, (data) => {
-    let user_rights = [];
-    const _rights = [];
-    data.rights.forEach((r) => (_rights[r.id] = { ...r }));
-    _rights.forEach((r) => {
-      const { id, parent, type, path, name, icon, sort } = r;
-      if (parent !== 0) {
-        if (!user_rights[parent])
-          user_rights[parent] = {
-            ..._rights[parent],
-            children: [
-              {
-                id,
-                parent,
-                type,
-                path,
-                name,
-                icon,
-                children: [{ id, parent, type, path, name, icon, sort }],
-              },
-            ],
-          };
-        else
-          user_rights[parent].children.push({
-            id,
-            parent,
-            type,
-            path,
-            name,
-            icon,
-            sort,
-          });
-      } else {
-        if (!user_rights[r.id])
-          user_rights[r.id] = {
-            id,
-            parent,
-            type,
-            path,
-            icon,
-            name,
-            sort,
-            children: [],
-          };
-      }
-    });
-    user_rights.forEach((d, i) => {
-      user_rights[i].children.sort((a, b) => a.sort - b.sort);
-    });
-    user_rights.sort((a, b) => a.sort - b.sort);
-    localSet("user_rights", user_rights);
-    localSet("all_rights", data.rights);
-    fun(user_rights);
-    initRights(1);
-  });
+  gur_arr.push(fun);
+  console.log(gur_arr, timer);
+  timer === 0 &&
+    (timer = setTimeout(() =>
+      req.get(
+        urls.getUserSideMenu,
+        (data) => {
+          let user_rights = [];
+          const _rights = [];
+          data.rights.forEach((r) => (_rights[r.id] = { ...r }));
+          _rights.forEach(
+            (r) => r.parent == 0 && (user_rights[r.id] = { ...r, children: [] })
+          );
+          _rights.forEach(
+            (r) => r.parent != 0 && user_rights[r.parent].children.push({ ...r })
+          );
+          for (let n = 0; n < user_rights.length; n++) {
+            user_rights[n] && user_rights[n].children.sort(
+              (a, b) => parseInt(a.sort) - parseInt(b.sort)
+            );
+          }
+          user_rights.sort((a, b) => parseInt(a.sort) - parseInt(b.sort));
+          localSet("user_rights", user_rights);
+          localSet("all_rights", data.rights);
+          gur_arr.forEach(f=>f(user_rights));
+          clearTimeout(timer);
+          timer = 0;
+          gur_arr = [];
+          initRights(1);
+        },
+        e=>{
+          console.log(e, timer);
+          clearTimeout(timer);
+          timer = 0;
+          gur_arr = [];
+        }
+      )
+    ),
+    1000);
 };
 
 const hasRights = (p) => {

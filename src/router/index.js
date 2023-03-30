@@ -67,6 +67,11 @@ const router = createRouter({
       name: 'Services_category',
       component: () => import(/* webpackChunkName: "Services_category" */ '../views/Services_category.vue')
     },
+    {
+      path: '/services_deleted',
+      name: 'Services_deleted',
+      component: () => import(/* webpackChunkName: "Services_deleted" */ '../views/Services_deleted.vue')
+    },
 
     ////
     {

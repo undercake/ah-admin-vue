@@ -50,14 +50,13 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" />
-        <el-table-column prop="avatar" label="头像" width="100">
+        <el-table-column prop="avatar" label="封面" width="100">
           <template #default="scope">
             <el-avatar shape="square" size="large" :src="scope.row.avatar" />
           </template>
         </el-table-column>
         <el-table-column prop="name" label="服务名称" width="200" />
-        <el-table-column prop="intro" label="服务简介" width="">
-        </el-table-column>
+        <el-table-column prop="intro" label="服务简介" width="" />
         <el-table-column prop="class_id" label="服务类目" width="180">
           <template #default="scope">
             <el-select :model-value="scope.row.class_id" class="m-2" placeholder="Select" @change="v=>handle_class_change(scope, v)">
