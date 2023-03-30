@@ -39,6 +39,7 @@
             >
           </el-menu-item-group>
         </el-sub-menu>
+        <el-menu-item index="/my_pass" @click="push_route('/my_pass')"> 修改我的信息 </el-menu-item>
         <el-sub-menu index="1">
           <template #title>
             <span>Dashboard</span>
