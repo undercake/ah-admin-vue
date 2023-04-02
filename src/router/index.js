@@ -77,6 +77,16 @@ const router = createRouter({
       name: 'My_pass',
       component: () => import(/* webpackChunkName: "My_pass" */ '../views/My_pass.vue')
     },
+    {
+      path: '/customer_list',
+      name: 'Customer_list',
+      component: () => import(/* webpackChunkName: "Customer_list" */ '../views/Customer_list.vue')
+    },
+    {
+      path: '/customer_deleted',
+      name: 'Customer_deleted',
+      component: () => import(/* webpackChunkName: "Customer_deleted" */ '../views/Customer_deleted.vue')
+    },
 
     ////
     {

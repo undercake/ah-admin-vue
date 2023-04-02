@@ -32,13 +32,16 @@
         </span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item disabled>{{
-              (state.userInfo && state.userInfo.groupName) || ""
-            }}</el-dropdown-item>
-            <el-dropdown-item divided @click="logout"
-              ><i class="fa-solid fa-right-from-bracket"></i
-              >退出</el-dropdown-item
-            >
+            <el-dropdown-item disabled>
+              管理员角色：{{ (state.userInfo && state.userInfo.groupName) || "" }}
+            </el-dropdown-item>
+            <el-dropdown-item @click="()=>router.push('/my_pass')">
+              修改密码
+            </el-dropdown-item>
+            <el-dropdown-item divided @click="logout">
+              <i class="fa-solid fa-right-from-bracket" />
+              退出
+            </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -66,17 +69,24 @@ const state = reactive({
 });
 
 // 背景颜色
-const bg_list = ["bg-white", "bg-green", "bg-orange", "bg-red", "bg-blue", "bg-dark"];
+const bg_list = [
+  "bg-white",
+  "bg-green",
+  "bg-orange",
+  "bg-red",
+  "bg-blue",
+  "bg-dark",
+];
 
 // 初始化执行方法
 onMounted(() => {
   state.path = router.currentRoute._rawValue.path;
   mittBus.on("routeChange", (e) => {
-    if (e === false) return state.name = '加载中...';
+    if (e === false) return (state.name = "加载中...");
     state.name = getRouteName(e);
     console.log(e);
   });
-  getUserRights(()=>state.name = getRouteName(state.path));
+  getUserRights(() => (state.name = getRouteName(state.path)));
   console.log(state.path);
   getUserInfo();
 });
@@ -94,12 +104,26 @@ const logout = () => {
 </script>
 
 <style scoped>
-.bg-white.bg, .bg-white .bg{background-color: #fff;}
-.bg-dark .bg,.bg-dark.bg{background-color: #212121;}
-.bg-green .bg{background-color: #e1f3d8;}
-.bg-orange .bg{background-color: #faecd8;}
-.bg-red .bg{background-color: #fde2e2;}
-.bg-blue .bg {background-color: #d9ecff;}
+.bg-white.bg,
+.bg-white .bg {
+  background-color: #fff;
+}
+.bg-dark .bg,
+.bg-dark.bg {
+  background-color: #212121;
+}
+.bg-green .bg {
+  background-color: #e1f3d8;
+}
+.bg-orange .bg {
+  background-color: #faecd8;
+}
+.bg-red .bg {
+  background-color: #fde2e2;
+}
+.bg-blue .bg {
+  background-color: #d9ecff;
+}
 .bg-green .header,
 .bg-orange .header,
 .bg-red .header,
@@ -114,10 +138,10 @@ const logout = () => {
   align-items: center;
   padding: 0 20px;
 }
-.header>.left {
+.header > .left {
   min-width: 300px;
 }
-.header>.left>.right {
+.header > .left > .right {
   margin-right: 0;
   float: right;
 }

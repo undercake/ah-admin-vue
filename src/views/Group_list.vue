@@ -38,7 +38,13 @@
       >
         <el-table-column type="selection"> </el-table-column>
         <el-table-column prop="name" label="角色名"> </el-table-column>
-        <el-table-column prop="rights" label="权限"> </el-table-column>
+        <el-table-column prop="rights" label="权限">
+          <template #default="scope">
+            <el-text truncated>
+              {{ scope.row.rights }}
+            </el-text>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a

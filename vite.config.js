@@ -28,7 +28,7 @@ export default ({ mode }) => defineConfig({
     proxy: {
       '/midas': {
         // 测试环境
-        target: 'http://tp6.to', // 接口域名
+        target: 'http://test.kmahjz.com.cn', // 接口域名
         changeOrigin: true, //是否跨域
         pathRewrite: {
           "^/api": "",
@@ -44,11 +44,11 @@ export default ({ mode }) => defineConfig({
           }
         },
       },
-      '/static': 'http://tp6.to',
-      '/upload': 'http://tp6.to',
+      '/static': 'http://test.kmahjz.com.cn',
+      '/upload': 'http://test.kmahjz.com.cn',
     },
     watch: {
-      usePolling: true 
+      usePolling: true
     }
   },
   css: {
