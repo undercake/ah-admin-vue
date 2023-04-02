@@ -66,7 +66,7 @@ const state = reactive({
 });
 
 // 背景颜色
-const bg_list = ["bg-white", "bg-green", "bg-orange", "bg-red", "bg-blue"];
+const bg_list = ["bg-white", "bg-green", "bg-orange", "bg-red", "bg-blue", "bg-dark"];
 
 // 初始化执行方法
 onMounted(() => {
@@ -94,6 +94,8 @@ const logout = () => {
 </script>
 
 <style scoped>
+.bg-white.bg, .bg-white .bg{background-color: #fff;}
+.bg-dark .bg,.bg-dark.bg{background-color: #212121;}
 .bg-green .bg{background-color: #e1f3d8;}
 .bg-orange .bg{background-color: #faecd8;}
 .bg-red .bg{background-color: #fde2e2;}

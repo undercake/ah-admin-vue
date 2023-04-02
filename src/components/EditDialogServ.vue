@@ -5,7 +5,7 @@
     center
     :close-on-click-modal="false"
     :show-close="false"
-    v-loading="state.emp_load"
+    v-loading="state.load_all"
   >
     <template #header>
       <span role="heading" class="el-dialog__title"
@@ -20,14 +20,14 @@
         <i class="el-icon el-dialog__close fa-solid fa-xmark-large fa-fw" />
       </button>
     </template>
-    <el-skeleton :rows="3" animated v-if="state.emp_load" />
+    <el-skeleton :rows="3" animated v-if="state.load_all" />
     <el-form
       :model="state.ruleForm"
       :rules="rules"
       ref="formRef"
       label-width="100px"
       class="good-form"
-      v-if="!state.emp_load"
+      v-if="!state.load_all"
     >
       <el-form-item label="封面" prop="avatar">
         <el-upload
@@ -129,7 +129,7 @@
         </el-upload>
       </el-form-item>
       <el-form-item label="详情" prop="details">
-        <div style="border: 1px solid #ccc; border-radius: 5px; padding: 2px 0">
+        <div style="border: 1px solid #ccc; border-radius: 5px; padding: 2px 0" class="ckeditor">
           <div v-if="state.progress > 0">
             <el-progress :percentage="state.progress" />
           </div>
@@ -167,9 +167,6 @@ import {
   ref,
   getCurrentInstance
 } from "vue";
-// import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
-// import "@wangeditor/editor/dist/css/style.css";
-// import Editor from '@tinymce/tinymce-vue'
 import CKEditor from '@ckeditor/ckeditor5-vue';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
@@ -186,8 +183,7 @@ const state = reactive({
   uploading: false,
   id: -1,
   is_edit: false,
-  emp_load: false,
-  load_all: false,
+  load_all: true,
   disable_close: false,
   emp_list: [],
   category: [],
@@ -447,5 +443,20 @@ img.img {
 .ck.ck-editor__main {
   max-height: 400px;
   overflow-y: auto;
+}
+.ckeditor {
+  width: 100%;
+}
+.ck.ck-editor__editable_inline {
+  border: none;
+}
+.ck.ck-toolbar {
+  border: none;
+}
+.ck.ck-sticky-panel__content {
+  border-bottom: 1px solid #ccced1;
+}
+.ck.ck-editor__editable_inline p{
+  color: #606266;
 }
 </style>

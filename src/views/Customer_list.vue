@@ -3,32 +3,28 @@
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
-    <el-card
-      class="category-container"
-      v-if="!state.firstLoading"
-      v-loading="state.loading"
-    >
+    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleRec">
-            <i class="fa fa-solid fa-rotate-right"></i>
-            还原
-          </el-button>
+          <el-button type="primary" @click="handleAdd">
+            <i class="fa fa-solid fa-plus"></i>
+            增加</el-button
+          >
           <el-popconfirm
             title="确定删除吗？"
             confirmButtonText="确定"
             cancelButtonText="取消"
-            @confirm="handleDeleteOne(0)"
+            @confirm="handleDelete"
           >
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量彻底删除
-              </el-button>
+                批量删除</el-button
+              >
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)">
-            <i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
+          <el-button type="primary" @click="getData(state.currentPage)"
+            ><i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
           >
         </div>
       </template>
@@ -41,21 +37,42 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" />
-        <el-table-column prop="name" label="服务名称" width="200" />
-        <el-table-column prop="intro" label="服务简介" width="" />
-        <el-table-column prop="class_id" label="服务类目" width="180">
+        <el-table-column prop="avatar" label="头像" width="100">
           <template #default="scope">
-            {{ state.category[scope.row.class_id] }}
+            <el-avatar
+              shape="square"
+              size="large"
+              :src="scope.row.avatar"
+            />
           </template>
         </el-table-column>
+        <el-table-column prop="name" label="姓名" width="80" />
+        <el-table-column prop="gender" label="性别" width="60">
+          <template #default="scope">
+            {{ (['男', '女'])[scope.row.gender] }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="phone" label="手机号" width="130">
+          <template #default="scope">
+            {{ scope.row.phone.split(',')[0] }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="grade" label="学历" width="80">
+          <template #default="scope">
+            {{ (['未知','小学','初中','高中','中专','技校','大专','本科','硕士','博士'])[scope.row.grade] }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="origin" label="籍贯" width="170" />
+        <el-table-column prop="address" label="现住址" />
+        <el-table-column prop="intro" label="简介" />
+        <el-table-column prop="note" label="备注" width="130" />
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a
               style="cursor: pointer; margin-right: 10px"
-              @click="handleRec(scope.row.id)"
+              @click="handleEdit(scope.row.id)"
+              >修改</a
             >
-              恢复
-            </a>
             <el-popconfirm
               title="确定删除吗？"
               confirmButtonText="确定"
@@ -85,7 +102,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, getCurrentInstance } from "vue";
+import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogEmp from "@/components/EditDialogEmp.vue";
 
@@ -104,26 +121,17 @@ const state = reactive({
   level: 1,
   parent_id: 0,
   empty: "没有数据",
-  category: [],
 });
 onMounted(() => {
   getData();
 });
 // 获取数据
 const getData = (page = 0) => {
-  state.edit_opts = 0;
-  state.edit_serv = 0;
   if (page === 0) page = state.currentPage;
   state.loading = true;
-  req.get(urls.services_category, (d) => {
-    console.log(d);
-    state.category = [];
-    d.data.forEach((c) => (state.category[c.id] = c.name));
-  });
   req.get(
-    `${urls.services_deleted}/page/${page}`,
+    `${urls.employee_list}/page/${page}`,
     (d) => {
-      console.log(d);
       state.tableData = d.data;
       state.loading = false;
       state.firstLoading = false;
@@ -131,63 +139,34 @@ const getData = (page = 0) => {
       state.pageSize = d.count_per_page;
       state.total = d.count;
       state.empty = "没有数据";
-      req.get(urls.services_options, (d) => {
-        const data = d.data;
-        const tmpOpt = [];
-        data.forEach(
-          (d) =>
-            (tmpOpt[d.service_id] = tmpOpt[d.service_id]
-              ? tmpOpt[d.service_id] + 1
-              : 1)
-        );
-        state.opt_count = tmpOpt;
-        console.log(tmpOpt);
-      });
     },
     (d) => {
       console.log(d);
       console.error(d);
-      state.firstLoading = false;
       state.loading = false;
+      state.firstLoading = false;
       state.empty = "加载错误";
+      // showMsg.err('加载错误')
     }
   );
 };
-
-const handleRec = (id = 0) => {
-  const ids = state.multipleSelection.map((d) => d.id);
-  const data = id === 0 ? { ids } : { id };
-  req.post(urls.services_rec, data, () => getData());
+const handleAdd = () => {
+  editRef.value.open(0);
 };
-
-const deep_delete = (id = 0) => {
-  if (id === 0)
-    req.post(urls.services_deep_del, { ids: state.multipleSelection }, () => {
-      showMsg.succ("成功删除！");
-      getData();
-    });
-  req.del(urls.services_deep_del + "/id/" + id, () => {
-    showMsg.succ("成功删除！");
-    getData();
-  });
-};
+// 修改分类
+const handleEdit = (id) => editRef.value.open(id);
 // 选择项
-const handleSelectionChange = (val) => {
-  state.multipleSelection = val;
+const handleSelectionChange = (val) => (state.multipleSelection = val);
+// 批量删除
+const handleDelete = () => {
+  console.log(state.multipleSelection.length);
+  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择要删除的数据！');
+  const ids = state.multipleSelection.map(d=>d.id);
+  req.post(urls.employee_delete,{ids}, ()=>getData());
 };
-
 // // 单个删除
 const handleDeleteOne = (id) => {
-  console.log(id);
-  if (id == 0 && state.multipleSelection.length < 1)
-    return showMsg.warn("您没有选择数据！");
-  ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  })
-    .then(() => deep_delete(id))
-    .catch((e) => console.log(e));
+  req.del(urls.employee_delete + "/id/" + id, () => getData());
 };
 </script>
 

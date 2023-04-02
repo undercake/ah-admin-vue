@@ -2,7 +2,7 @@
   "name": "admin00",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite --mode development",
+    "dev": "vite --mode development --host 0.0.0.0",
     "build:beta": "vite build --mode beta",
     "build:release": "vite build --mode release",
     "serve": "vite preview"

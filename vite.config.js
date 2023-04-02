@@ -46,6 +46,9 @@ export default ({ mode }) => defineConfig({
       },
       '/static': 'http://tp6.to',
       '/upload': 'http://tp6.to',
+    },
+    watch: {
+      usePolling: true 
     }
   },
   css: {

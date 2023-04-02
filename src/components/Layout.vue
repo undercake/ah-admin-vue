@@ -50,6 +50,9 @@ const state = reactive({
 
 const changeBg = (e) => {
   state.bg = e;
+  if (e == 'bg-dark') {
+    mittBus.emit('dark-mode', true);
+  } else mittBus.emit('dark-mode', false);
   localSet("bg", e);
 };
 
@@ -61,7 +64,10 @@ const to_log = () => {
 // 布局初始化
 onMounted(() => {
   state.path = route.currentRoute._rawValue.path;
-  state.bg = localGet("bg", "bg-white");
+  state.bg = localGet("bg", "");  
+  if (state.bg == 'bg-dark' && state.bg != '') {
+    mittBus.emit('dark-mode', true);
+  } else if(state.bg != '') mittBus.emit('dark-mode', false);
   mittBus.on("is_login", (d) => {
     state.is_login = d;
   });
@@ -73,12 +79,6 @@ onUnmounted(() => {
   mittBus.off("is_login");
 });
 
-// const router = createRouter()
-// route.beforeEach(() => {
-//   console.log('before');
-//   state.route_loading = true;
-//   mittBus.emit('routeChange', false);
-// })
 route.afterEach((to) => {
   console.log('after', to.fullPath);
   state.route_loading = false;

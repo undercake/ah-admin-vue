@@ -6,33 +6,53 @@
 </template>
 
 <script setup>
-import { onMounted, getCurrentInstance } from "vue";
+import { onMounted, onUnmounted, getCurrentInstance } from "vue";
 import { useRouter } from "vue-router";
 import { localSet } from "@/utils";
 import axios from "axios";
+import { useDark, useToggle } from "@vueuse/core";
+
+const isDark = useDark({
+  selector: "body",
+  attribute: "color-scheme",
+  valueDark: "dark",
+  valueLight: "light",
+  onChanged(dark) {
+    dark
+      ? document.querySelector("html").classList.add("dark")
+      : document.querySelector("html").classList.remove("dark");
+  },
+});
+const toggleDark = useToggle(isDark);
 
 const router = useRouter();
 
-const {urls} = getCurrentInstance().appContext.config.globalProperties;
+const { urls, mittBus } =
+  getCurrentInstance().appContext.config.globalProperties;
 
-onMounted(()=>{
-  axios.get(urls.isLogged)
-    .then(({data})=>{
+onMounted(() => {
+  mittBus.on("dark-mode", toggleDark);
+  axios
+    .get(urls.isLogged)
+    .then(({ data }) => {
       const path = router.currentRoute._rawValue.path;
       if (!data.is_login) {
-        if (path != '/index' && path != '/login')
-          localSet('beforeLoin', path);
-        router.push({ path: '/login' });
-      } else if(path == '/login') router.push({ path: '/' });
+        if (path != "/index" && path != "/login") localSet("beforeLoin", path);
+        router.push({ path: "/login" });
+      } else if (path == "/login") router.push({ path: "/" });
     })
-    .catch(e=>console.log(e));
-})
+    .catch((e) => console.log(e));
+});
+onUnmounted(() => mittBus.off("dark-mode"));
 </script>
 
 <style scoped>
 .layout {
   min-height: 100vh;
   background-color: #ffffff;
+}
+.dark .layout {
+  background-color: #212121;
 }
 </style>
 
@@ -51,20 +71,16 @@ body {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.bg-green
-{
+.bg-green {
   background-color: #e1f3d8;
 }
-.bg-orange
-{
+.bg-orange {
   background-color: #faecd8;
 }
-.bg-red
-{
+.bg-red {
   background-color: #fde2e2;
 }
-.bg-blue
-{
+.bg-blue {
   background-color: #d9ecff;
 }
 .el-menu {
@@ -91,7 +107,13 @@ a {
 .el-popper__arrow {
   display: none;
 }
-[v-cloak] { display: none }
-[v-cloak] + .v-cloak-c { display: flex }
-.v-cloak-c { display: none }
+[v-cloak] {
+  display: none;
+}
+[v-cloak] + .v-cloak-c {
+  display: flex;
+}
+.v-cloak-c {
+  display: none;
+}
 </style>

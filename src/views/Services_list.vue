@@ -72,28 +72,30 @@
         </el-table-column>
         <el-table-column prop="status" label="上架状态" width="130">
           <template #default="scope">
-            <el-button
-              style="width:100%"
-              @mouseleave="handle_hover(scope.$index, false)"
-              @mouseenter="handle_hover(scope.$index, true)"
-              v-if="scope.$index == state.hover_id"
-              @click="
-                handleQuickEdit(scope.row.id, scope.row.status == 1 ? 0 : 1)
-              "
-              :type="['success', 'danger'][scope.row.status]"
-            >
-              {{ '点击' + (['上架', '下架'][scope.row.status]) }}
-            </el-button>
-            <el-button
-              style="width:100%"
-              @mouseleave="handle_hover(scope.$index, false)"
-              @mouseenter="handle_hover(scope.$index, true)"
-              v-else
-              :type="['danger', 'success'][scope.row.status]"
-              plain
-            >
-              {{ ["已下架", "上架中"][scope.row.status] }}
-            </el-button>
+            <div class="status-changeble">
+              <el-button
+                class="current-status"
+                @click="
+                  handleQuickEdit(scope.row.id, scope.row.status == 1 ? 0 : 1)
+                "
+                :type="['success', 'danger'][scope.row.status]"
+                :loading-icon="loadingIcon"
+                :loading="state.changeLoading == scope.row.id || state.changeLoading === 0"
+                :disabled="state.changeLoading == scope.row.id || state.changeLoading === 0"
+              >
+                {{ (state.changeLoading == scope.row.id || state.changeLoading === 0) ? ['上架中', '下架中'][scope.row.status] : '点击' + (['上架', '下架'][scope.row.status]) }}
+              </el-button>
+              <el-button
+                class="switch-status"
+                :type="['danger', 'success'][scope.row.status]"
+                :loading-icon="loadingIcon"
+                :loading="state.changeLoading == scope.row.id || state.changeLoading === 0"
+                :disabled="state.changeLoading == scope.row.id || state.changeLoading === 0"
+                plain
+              >
+                {{ (state.changeLoading == scope.row.id || state.changeLoading === 0) ? ['上架中', '下架中'][scope.row.status] : ["已下架", "上架中"][scope.row.status] }}
+              </el-button>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="opts" label="服务选项" width="60">
@@ -154,10 +156,12 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, getCurrentInstance } from "vue";
+import { onMounted, reactive, getCurrentInstance, h } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogServ from "@/components/EditDialogServ.vue";
 import EditDialogServOpts from "@/components/EditDialogServOpts.vue";
+
+const loadingIcon = h('i', {class: 'fa-solid fa-spinner-third'});
 
 const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
@@ -178,6 +182,7 @@ const state = reactive({
   parent_id: 0,
   empty: "没有数据",
   category: [],
+  changeLoading: -1
 });
 onMounted(() => {
   getData();
@@ -228,8 +233,8 @@ const getData = (page = 0) => {
 const handle_class_change = (scope,v) => {
   console.log(scope.row.id,v);
   req.post(urls.services_quick_ch_cat + '/id/' + scope.row.id, {class_id: v}, e=>{
-    showMsg.succ('修改成功');
     getData();
+    showMsg.succ('修改成功');
   })
 }
 
@@ -250,9 +255,11 @@ const handleQuickEdit = (id, currentStatus) => {
     return showMsg.err(
       "您没有选择需要" + ["下架", "上架"][currentStatus] + "的商品"
     );
+  state.changeLoading = id;
   const afterQ = () => {
-    showMsg.succ("更新成功！");
     getData();
+    showMsg.succ("更新成功！");
+    state.changeLoading = -1;
   };
   id == 0
     ? req.post(
@@ -261,9 +268,9 @@ const handleQuickEdit = (id, currentStatus) => {
           ids: state.multipleSelection.map((d) => d.id).toString(),
           status: currentStatus,
         },
-        afterQ
+        afterQ, ()=>{state.changeLoading = -1}
       )
-    : req.post(urls.services_quick_edit, { id, status: currentStatus }, afterQ);
+    : req.post(urls.services_quick_edit, { id, status: currentStatus }, afterQ, ()=>{state.changeLoading = -1});
 };
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
@@ -284,8 +291,6 @@ const handleClosed = () => {
   state.edit_serv = 0;
 };
 
-// const handle_hover = (index, status) => state.tableData[index].hover = status;
-const handle_hover = (i, s) => state.hover_id = s ? i : -1;
 </script>
 
 <style scoped>
@@ -294,5 +299,21 @@ const handle_hover = (i, s) => state.hover_id = s ? i : -1;
 }
 .succ {
   color: var(--el-color-success-light-3);
+}
+.status-changeble .el-button{
+  width: 100%;
+  margin: 0;
+}
+.status-changeble .switch-status{
+  display: inline-flex;
+}
+.status-changeble .current-status{
+  display: none;
+}
+.status-changeble:hover .switch-status{
+  display: none;
+}
+.status-changeble:hover .current-status{
+  display: inline-flex;
 }
 </style>
