@@ -3,7 +3,11 @@
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
-    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
+    <el-card
+      class="category-container"
+      v-if="!state.firstLoading"
+      v-loading="state.loading"
+    >
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleAdd">
@@ -28,6 +32,19 @@
           >
         </div>
       </template>
+      <!-- 
+  name
+	3	mobile
+	4	black
+	5	pym
+	6	pinyin
+	7	del
+	8	create_time
+	9	last_modify
+	10	remark
+	11	total_money
+	12	total_count
+ -->
       <el-table
         ref="multipleTable"
         :data="state.tableData"
@@ -37,35 +54,44 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" />
-        <el-table-column prop="avatar" label="头像" width="100">
+        <el-table-column prop="name" label="姓名" width="130">
           <template #default="scope">
-            <el-avatar
-              shape="square"
-              size="large"
-              :src="scope.row.avatar"
-            />
+            {{ scope.row.name }}
+            <el-tag
+              v-if="scope.row.black == 1"
+              type="danger"
+              class="mx-1"
+              effect="light"
+              round
+            >
+              已拉黑
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="name" label="姓名" width="80" />
-        <el-table-column prop="gender" label="性别" width="60">
+        <el-table-column label="地址">
           <template #default="scope">
-            {{ (['男', '女'])[scope.row.gender] }}
+            <el-text truncated v-for="(item, index) in state.addr[scope.row.id]" :key="index">
+              {{ item.address }}
+            </el-text>
           </template>
         </el-table-column>
-        <el-table-column prop="phone" label="手机号" width="130">
+        <el-table-column prop="last_modify" label="最后编辑时间" width="180">
           <template #default="scope">
-            {{ scope.row.phone.split(',')[0] }}
+            <el-text truncated>
+              {{ scope.row.last_modify }}
+            </el-text>
           </template>
         </el-table-column>
-        <el-table-column prop="grade" label="学历" width="80">
+        <el-table-column label="合同编号  到期时间">
           <template #default="scope">
-            {{ (['未知','小学','初中','高中','中专','技校','大专','本科','硕士','博士'])[scope.row.grade] }}
+            <p v-for="(item, index) in state.services[scope.row.id]" :key="index">
+              <el-text truncated>
+                {{ item.contract_code }}
+                {{ item.end_time }}
+              </el-text>
+            </p>
           </template>
         </el-table-column>
-        <el-table-column prop="origin" label="籍贯" width="170" />
-        <el-table-column prop="address" label="现住址" />
-        <el-table-column prop="intro" label="简介" />
-        <el-table-column prop="note" label="备注" width="130" />
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a
@@ -100,7 +126,6 @@
     <EditDialogEmp ref="editRef" @reload="getData(0)" />
   </Layout>
 </template>
-
 <script setup>
 import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
@@ -110,13 +135,15 @@ const editRef = ref(false);
 const { urls, showMsg, req } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  addr: [],
+  services: [],
   firstLoading: true,
   loading: true,
   tableData: [], // 数据列表
   multipleSelection: [], // 选中项
   total: 0, // 总条数
   currentPage: 1, // 当前页
-  pageSize: 20, // 分页大小
+  pageSize: 10, // 分页大小
   type: "add", // 操作类型
   level: 1,
   parent_id: 0,
@@ -130,9 +157,12 @@ const getData = (page = 0) => {
   if (page === 0) page = state.currentPage;
   state.loading = true;
   req.get(
-    `${urls.employee_list}/page/${page}`,
+    `${urls.customer_list}/page/${page}`,
     (d) => {
-      state.tableData = d.data;
+      d.addr.forEach(a=>state.addr[a.customer_id] ? state.addr[a.customer_id].push(a) : (state.addr[a.customer_id] = [a]));
+      d.services.forEach(a=>state.services[a.customer_id] ? state.services[a.customer_id].push(a) : (state.services[a.customer_id] = [a]));
+      console.log(state.addr, state.services);
+      state.tableData = [...d.data];
       state.loading = false;
       state.firstLoading = false;
       state.currentPage = d.current_page;
@@ -141,7 +171,6 @@ const getData = (page = 0) => {
       state.empty = "没有数据";
     },
     (d) => {
-      console.log(d);
       console.error(d);
       state.loading = false;
       state.firstLoading = false;
@@ -160,13 +189,14 @@ const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除
 const handleDelete = () => {
   console.log(state.multipleSelection.length);
-  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择要删除的数据！');
-  const ids = state.multipleSelection.map(d=>d.id);
-  req.post(urls.employee_delete,{ids}, ()=>getData());
+  if (state.multipleSelection.length < 1)
+    return showMsg.warn("您没有选择要删除的数据！");
+  const ids = state.multipleSelection.map((d) => d.id);
+  req.post(urls.customer_delete, { ids }, () => getData());
 };
 // // 单个删除
 const handleDeleteOne = (id) => {
-  req.del(urls.employee_delete + "/id/" + id, () => getData());
+  req.del(urls.customer_delete + "/id/" + id, () => getData());
 };
 </script>
 

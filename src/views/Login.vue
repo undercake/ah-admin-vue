@@ -1,15 +1,8 @@
 <template>
-  <!-- <div class="login-body">
-    <div class="login-container">
-      <div class="head">
-        <img class="logo" :src="urls.BaseUri + '/static/logo.png'" />
-      </div>
-    </div>
-  </div> -->
-
   <div class="body-wrap">
 		<div class="main-wrap">
-			<img src="https://uniapp.v5.niuteam.cn/app/shop/view/public/img/login-left.png" alt="" class="login-leftbg">
+			<img src="https://uniapp.v5.niuteam.cn/app/shop/view/public/img/login-left.png" alt="" class="login-leftbg light">
+			<img src="https://uniapp.v5.niuteam.cn/app/shop/view/public/img/login-left-dark.png" alt="" class="login-leftbg dark">
 
 			<div class="form-wrap layui-form">
         <Login @login="to_log" />
@@ -38,6 +31,9 @@ const to_log = e=>{
     color: #333;
     background: #F7F8FA;
 }
+.dark .body-wrap {
+  background-color: #212121;
+}
 .body-wrap .main-wrap {
     display: flex;
     align-items: center;
@@ -46,6 +42,19 @@ const to_log = e=>{
 }
 img {
     border: none;
+}
+
+img.light {
+  display: block;
+}
+img.dark {
+  display: none;
+}
+.dark img.light{
+  display: none;
+}
+.dark img.dark{
+  display: block;
 }
 .main-wrap {
     width: 1200px;
@@ -61,50 +70,14 @@ img {
     padding: 50px 40px;
     box-sizing: border-box;
 }
+.dark .body-wrap .form-wrap {
+  background-color: #333;
+}
 .form-wrap {
     background-color: #fff;
     padding: 15px 0;
     border-radius: 5px;
 }
-/* .body-wrap {
-    flex: 1;
-    height: 0;
-}
-.login-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  background-color: #fff;
-}
-.login-container {
-  width: 420px;
-  padding-bottom: 50px;
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0px 21px 41px 0px rgba(0, 0, 0, 0.2);
-}
-.head {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 0 0;
-}
-.head img {
-  max-width: 200px;
-}
-.head .title {
-  font-size: 28px;
-  color: #1baeae;
-  font-weight: bold;
-}
-.head .tips {
-  font-size: 12px;
-  color: #999;
-} */
-/* .login-form {
-  margin: 0 auto;
-} */
 .login-form >>> .el-form--label-top .el-form-item__label {
   padding: 0;
 }

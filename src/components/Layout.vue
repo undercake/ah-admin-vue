@@ -64,7 +64,7 @@ const to_log = () => {
 // 布局初始化
 onMounted(() => {
   state.path = route.currentRoute._rawValue.path;
-  state.bg = localGet("bg", "");  
+  state.bg = localGet("bg", "");
   if (state.bg == 'bg-dark' && state.bg != '') {
     mittBus.emit('dark-mode', true);
   } else if(state.bg != '') mittBus.emit('dark-mode', false);

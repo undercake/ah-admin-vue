@@ -35,6 +35,14 @@
           <el-row :gutter="20">
             <el-col :span="12" v-for="o in item.children" :key="o.id">
               <span>{{ o.name }}</span>
+              <el-tag
+                class="mx-1"
+                effect="light"
+                round
+                v-if="o.type !== 0"
+              >
+                {{ ['API', '编辑'][o.type - 1] }}
+              </el-tag>
               <span class="right">
                 <el-switch
                   :model-value="state.rights_selected.has(o.id)"

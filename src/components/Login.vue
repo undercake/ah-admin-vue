@@ -158,6 +158,9 @@ const submitForm = async () => {
     text-align: center;
     margin-bottom: 30px;
 }
+.dark .body-wrap .form-wrap .login-title {
+  color: #e6e7e8;
+}
 </style>
 <style>
 .end-nopadding .el-input-group__append {
