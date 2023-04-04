@@ -31,18 +31,6 @@
             <i class="fa fa-solid fa-arrows-rotate" />
             刷新
           </el-button>
-          <el-input
-            v-model="state.searchStr"
-            class="search"
-            size="large"
-            placeholder="输入电话号查找"
-            clearable
-            @keydown.enter="getData(1)"
-          />
-          <el-button type="primary" @click="getData(1)">
-            <i class="fa fa-solid fa-magnifying-glass" />
-            搜索
-          </el-button>
         </div>
       </template>
       <el-table
@@ -89,64 +77,86 @@
             </el-text>
           </template>
         </el-table-column>
-        <el-table-column label="类型 合同编号 到期时间" width="340">
+        <el-table-column label="类型 合同编号 到期时间" width="400">
           <template #default="scope">
-            <p
-              v-for="(item, index) in state.services[scope.row.id]"
-              :key="index"
-              style="text-align: left"
-            >
-              <el-text truncated>
-                <el-tag
-                  :type="
-                    [
-                      'info',
-                      'info',
-                      '',
-                      '',
-                      'success',
-                      'success',
-                      'success',
-                      '',
-                    ][item.type]
-                  "
-                  class="mx-1"
-                  effect="dark"
-                >
-                  {{
-                    [
-                      "暂无",
-                      "钟点",
-                      "包周",
-                      "包做",
-                      "年卡",
-                      "季卡",
-                      "月卡",
-                      "半月卡",
-                    ][item.type]
-                  }}
-                </el-tag>
-              </el-text>
-              <el-text truncated style="margin-left: 0.5rem">
-                {{ item.contract_code }}
-              </el-text>
-              <el-text
-                truncated
-                style="margin-left: 0.5rem"
-                v-if="item.type != 0 && item.type != 1"
+            <div style="text-align: left">
+              <p
+              v-for="(item, index) in state.services[scope.row.id]" :key="index"
+                style="text-align: left"
+                :class="item.type == 0 || item.type == 1 ? 'p-inline' : ''"
               >
-                <el-tag
-                  :type="
-                    item.expired ? 'danger' : item.near ? 'warning' : 'success'
-                  "
-                  class="mx-1"
-                  effect="dark"
+                <el-text truncated>
+                  合同{{ index + 1 }}
+                  <el-tag
+                    :type="
+                      [
+                        'info',
+                        'info',
+                        '',
+                        '',
+                        'success',
+                        'success',
+                        'success',
+                        '',
+                      ][item.type]
+                    "
+                    class="mx-1"
+                    effect="dark"
+                  >
+                    {{
+                      [
+                        "暂无",
+                        "钟点",
+                        "包周",
+                        "包做",
+                        "年卡",
+                        "季卡",
+                        "月卡",
+                        "半月卡",
+                      ][item.type]
+                    }}
+                  </el-tag>
+                </el-text>
+                <el-text
+                  truncated
+                  style="margin-left: 0.5rem; width: 45px"
+                  v-if="item.contract_code.length <= 5 && item.type != 0 && item.type != 1 "
                 >
-                  {{ item.expired ? "已" : item.near ? "临近" : "未" }}过期
-                </el-tag>
-                {{ item.end_time }}
-              </el-text>
-            </p>
+                  {{ item.contract_code }}
+                </el-text>
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  :content="item.contract_code"
+                  placement="bottom"
+                  v-else-if="item.type != 0 && item.type != 1"
+                >
+                  <el-text truncated style="margin-left: 0.5rem; width: 45px">
+                    {{ item.contract_code }}
+                  </el-text>
+                </el-tooltip>
+                <el-text
+                  truncated
+                  style="margin-left: 0.5rem"
+                  v-if="item.type != 0 && item.type != 1"
+                >
+                  <el-tag
+                    :type="
+                      item.expired
+                        ? 'danger'
+                        : item.near
+                        ? 'warning'
+                        : 'success'
+                    "
+                    class="mx-1"
+                    effect="dark"
+                  >
+                    {{ item.expired ? "已" : item.near ? "即将" : "未" }}过期
+                  </el-tag>
+                  {{ item.end_time }}
+                </el-text>
+              </p>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="220">
@@ -252,17 +262,7 @@ const getData = (page = 0) => {
     state.firstLoading = false;
     state.empty = "加载错误";
   };
-  if (state.searchStr.trim() == "")
-    req.get(`${urls.customer_list}/page/${page}`, prosessData, handleErr);
-  else
-    req.post(
-      `${urls.customer_search}/page/${page}`,
-      {
-        mobile: state.searchStr.trim(),
-      },
-      prosessData,
-      handleErr
-    );
+  req.get(`${urls.customer_near}/page/${page}`, prosessData, handleErr);
 };
 const handleAdd = () => {
   editRef.value.open(0);
@@ -289,5 +289,18 @@ const handleDeleteOne = (id) => {
 .search {
   width: 12rem;
   margin: 0 0.6rem;
+}
+.cell p {
+  margin: 0;
+  padding: 5px 0;
+}
+.cell p + p {
+  border-top: 1px solid var(--el-border-color);
+}
+.cell p.p-inline {
+  display: inline-block;
+  border: none !important;
+  height: 1rem;
+  padding-right: .5rem;
 }
 </style>

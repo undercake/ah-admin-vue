@@ -33,7 +33,7 @@
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item disabled>
-              管理员角色：{{ (state.userInfo && state.userInfo.groupName) || "" }}
+              角色：{{ (state.userInfo && state.userInfo.groupName) || "" }}
             </el-dropdown-item>
             <el-dropdown-item @click="()=>router.push('/my_pass')">
               修改密码

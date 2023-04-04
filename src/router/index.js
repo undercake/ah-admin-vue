@@ -83,6 +83,11 @@ const router = createRouter({
       component: () => import(/* webpackChunkName: "Customer_list" */ '../views/Customer_list.vue')
     },
     {
+      path: '/customer_near',
+      name: 'Customer_near',
+      component: () => import(/* webpackChunkName: "Customer_near" */ '../views/Customer_near.vue')
+    },
+    {
       path: '/customer_deleted',
       name: 'Customer_deleted',
       component: () => import(/* webpackChunkName: "Customer_deleted" */ '../views/Customer_deleted.vue')

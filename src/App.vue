@@ -21,6 +21,7 @@ const isDark = useDark({
     dark
       ? document.querySelector("html").classList.add("dark")
       : document.querySelector("html").classList.remove("dark");
+    localSet("bg", dark ? 'bg-dark' : '');
   },
 });
 const toggleDark = useToggle(isDark);

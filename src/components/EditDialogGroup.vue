@@ -21,7 +21,7 @@
       </el-form-item>
     </el-form>
     <el-skeleton :rows="3" animated v-if="state.group_load" />
-    <div class="container" v-if="!state.group_load">
+    <el-scrollbar class="container" v-if="!state.group_load">
       <el-card class="box-card" v-for="item in state.right_list" :key="item.idi">
         <template #header>
           <div class="card-header">
@@ -54,7 +54,7 @@
         <span class="text item">
         </span>
       </el-card>
-    </div>
+    </el-scrollbar>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="close" :disabled="state.disable_close"
@@ -212,5 +212,8 @@ defineExpose({ open, close });
 .el-card span.right{
   margin-right: 0;
   float: right;
+}
+.el-scrollbar{
+  height: 400px;
 }
 </style>
