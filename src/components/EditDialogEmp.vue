@@ -230,18 +230,18 @@ const state = reactive({
     id_code: [
       //身份证号码为15位或者18位，15位时全为数字，18位前17位为数字，最后一位是校验位，可能为数字或字符X
       {
-        pattern: /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/,
+        pattern: /(^\d{18}$)|(^\d{17}(\d|X|x)$)/,
         message: "身份证号格式不正确",
         trigger: "blur",
       },
       //取身份证前两位,校验省份
       {
-        validator: (id) => v_city[id.substr(0, 2)] !== undefined,
+        validator: (_this, id) => v_city[id.slice(0, 2)] !== undefined,
         message: "身份证号省份格式不正确",
         trigger: "blur",
       },
       {
-        validator: (id) => {
+        validator: (_this, id) => {
           const _date = id.match(/^(\d{6})(\d{4})(\d{2})(\d{2})(\d{3})([0-9]|X)$/);
           const new_date = new Date(_date[2] + "/" + _date[3] + "/" + _date[4]);
           return new_date.getFullYear() == _date[2] &&
@@ -253,7 +253,7 @@ const state = reactive({
       },
       // 校验位
       {
-        validator: (id) => {
+        validator: (_this, id) => {
           const intArr = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
           const intCh = ["1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"];
           let val_sum = 0;
@@ -261,7 +261,7 @@ const state = reactive({
             if (i >= 17) return;
             val_sum += intArr[i] * parseInt(d);
           });
-          return intCh[val_sum % 11] == id.split('')[17];
+          return intCh[val_sum % 11] == id.slice(17,18);
         },
         message: "身份证号校验格式不正确",
         trigger: "blur",
@@ -311,7 +311,6 @@ const get_emp_info = () => {
   req.get(`${urls.employee_detail}/id/${id}`, ({ detail }) => { detail;
     const {birth_date,work_date} = detail;
     state.ruleForm = {...detail};
-    console.log({birth_date,work_date});
     state.ruleForm.birth_date = birth_date == '0000-00-00' ? '' : birth_date;
     state.ruleForm.work_date = work_date == '0000-00-00' ? '' : work_date;
     state.load_all = false;

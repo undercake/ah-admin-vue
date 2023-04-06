@@ -22,44 +22,42 @@
     </el-form>
     <el-skeleton :rows="3" animated v-if="state.group_load" />
     <el-scrollbar class="container" v-if="!state.group_load">
-      <el-card class="box-card" v-for="item in state.right_list" :key="item.idi">
+      <el-card
+        class="box-card"
+        v-for="item in state.right_list"
+        :key="item.idi"
+      >
         <template #header>
           <div class="card-header">
             <span>{{ item.name }}</span>
             <el-switch
               :model-value="state.rights_selected.has(item.id)"
-              @change="e=>switch_change(item.id, e)"
+              @change="(e) => switch_change(item.id, e)"
             />
           </div>
         </template>
-          <el-row :gutter="20">
-            <el-col :span="12" v-for="o in item.children" :key="o.id">
-              <span>{{ o.name }}</span>
-              <el-tag
-                class="mx-1"
-                effect="light"
-                round
-                v-if="o.type !== 0"
-              >
-                {{ ['API', '编辑'][o.type - 1] }}
-              </el-tag>
-              <span class="right">
-                <el-switch
-                  :model-value="state.rights_selected.has(o.id)"
-                  @change="e=>switch_change(o.id, e)"
-                />
-              </span>
-            </el-col>
-          </el-row>
-        <span class="text item">
-        </span>
+        <el-row :gutter="20">
+          <el-col :span="12" v-for="o in item.children" :key="o.id">
+            <span>{{ o.name }}</span>
+            <el-tag class="mx-1" effect="light" round v-if="o.type !== 0">
+              {{ ["API", "编辑"][o.type - 1] }}
+            </el-tag>
+            <span class="right">
+              <el-switch
+                :model-value="state.rights_selected.has(o.id)"
+                @change="(e) => switch_change(o.id, e)"
+              />
+            </span>
+          </el-col>
+        </el-row>
+        <span class="text item"> </span>
       </el-card>
     </el-scrollbar>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="close" :disabled="state.disable_close"
-          >取消</el-button
-        >
+        <el-button @click="close" :disabled="state.disable_close">
+          取消
+        </el-button>
         <el-button
           type="primary"
           @click="submit_form"
@@ -77,8 +75,7 @@ import { reactive, onMounted, getCurrentInstance, ref } from "vue";
 const { urls, req, showMsg, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const emit = defineEmits();
-onMounted(() => {
-});
+onMounted(() => {});
 const formRef = ref(null);
 const state = reactive({
   id: -1,
@@ -100,25 +97,27 @@ const state = reactive({
 const open = (id = 0) => {
   console.log(hasRights("/group/edit"));
   if (!hasRights("/group/edit")) return showMsg.err("您没有权限编辑此项目");
-    state.is_edit = true;
-    get_rights();
+  state.is_edit = true;
+  get_rights();
   if (id > 0) {
     state.id = id;
     get_group_info();
   }
 };
 
-const switch_change = (id,rs) => {
-  console.log(id,rs);
+const switch_change = (id, rs) => {
+  console.log(id, rs);
   rs ? state.rights_selected.add(id) : state.rights_selected.delete(id);
   state.right_list.forEach((i) => {
     if (i.id === id) {
-      i.children.forEach(d => {
-        rs ? state.rights_selected.add(d.id) : state.rights_selected.delete(d.id);
-      })
+      i.children.forEach((d) => {
+        rs
+          ? state.rights_selected.add(d.id)
+          : state.rights_selected.delete(d.id);
+      });
     }
   });
-}
+};
 
 const close = () => (state.is_edit = false);
 
@@ -128,7 +127,9 @@ const get_group_info = () => {
   req.get(`${urls.group_detail}/id/${id}`, ({ detail }) => {
     state.ruleForm.name = detail.name;
     state.rights_selected.clear();
-    detail.rights.split(',').forEach(e => state.rights_selected.add(parseInt(e)));
+    detail.rights
+      .split(",")
+      .forEach((e) => state.rights_selected.add(parseInt(e)));
     console.log(detail, state.rights_selected);
     state.load_all = false;
   });
@@ -136,21 +137,27 @@ const get_group_info = () => {
 
 const get_rights = () => {
   state.group_load = true;
-  req.get(urls.rights_list, (d) => {
-    const data = [];
-    d.data.forEach(r=>r.parent == 0 && (data[r.id] = {...r, children: []}));
-    console.log(data);
-    d.data.forEach((r) => {
-      const { id, parent, type, path, name } = r;
-      console.log({ id, parent, type, path, name });
-      if (parent !== 0) {
-        data[parent].children.push({ id, parent, type, path, name });
-      }
-    });
-    state.right_list = data.filter(e => e);
-    state.group_load = false;
-    console.log(state.right_list);
-  },console.log);
+  req.get(
+    urls.rights_list,
+    (d) => {
+      const data = [];
+      d.data.forEach(
+        (r) => r.parent == 0 && (data[r.id] = { ...r, children: [] })
+      );
+      console.log(data);
+      d.data.forEach((r) => {
+        const { id, parent, type, path, name } = r;
+        console.log({ id, parent, type, path, name });
+        if (parent !== 0) {
+          data[parent].children.push({ id, parent, type, path, name });
+        }
+      });
+      state.right_list = data.filter((e) => e);
+      state.group_load = false;
+      console.log(state.right_list);
+    },
+    console.log
+  );
 };
 
 const submit_form = async () => {
@@ -167,7 +174,11 @@ const submit_form = async () => {
     const method = state.id == 0 ? "post" : "put";
     req[method](
       url,
-      { name, rights: (Array.from(state.rights_selected).toString()), id: state.id },
+      {
+        name,
+        rights: Array.from(state.rights_selected).toString(),
+        id: state.id,
+      },
       (d) => {
         state.is_edit = false;
         state.disable_close = false;
@@ -194,26 +205,26 @@ defineExpose({ open, close });
   margin-right: 10px;
 }
 .el-card {
-  margin-top: .9rem;
+  margin-top: 0.9rem;
 }
 .el-row {
   border-top: 1px solid #dcdfe6;
   border-left: 1px solid #dcdfe6;
 }
-.el-col{
+.el-col {
   border: 1px solid #dcdfe6;
   border-top: none;
   border-left: none;
 }
-.el-card span{
+.el-card span {
   margin-right: 1rem;
   line-height: 2rem;
 }
-.el-card span.right{
+.el-card span.right {
   margin-right: 0;
   float: right;
 }
-.el-scrollbar{
+.el-scrollbar {
   height: 400px;
 }
 </style>

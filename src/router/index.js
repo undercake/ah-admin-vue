@@ -92,6 +92,21 @@ const router = createRouter({
       name: 'Customer_deleted',
       component: () => import(/* webpackChunkName: "Customer_deleted" */ '../views/Customer_deleted.vue')
     },
+    {
+      path: '/order_add',
+      name: 'Order_add',
+      component: () => import(/* webpackChunkName: "Order_add" */ '../views/Order_add.vue')
+    },
+    {
+      path: '/order_list',
+      name: 'Order_list',
+      component: () => import(/* webpackChunkName: "Order_list" */ '../views/Order_list.vue')
+    },
+    {
+      path: '/order_deleted',
+      name: 'Order_deleted',
+      component: () => import(/* webpackChunkName: "Order_deleted" */ '../views/Order_deleted.vue')
+    },
 
     ////
     {
@@ -136,11 +151,6 @@ const router = createRouter({
         }
       ]
     },
-    // {
-    //   path: '/addgood',
-    //   name: 'addgood',
-    //   component: () => import(/* webpackChunkName: "new" */ '../views/AddGood.vue')
-    // },
     {
       path: '/good',
       name: 'good',

@@ -1,5 +1,5 @@
 <template>
-  <Layout>
+  <layout>
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
@@ -28,13 +28,14 @@
             </template>
           </el-popconfirm>
           <el-button type="primary" @click="getData(state.currentPage)">
-            <i class="fa fa-solid fa-arrows-rotate"></i>刷新
+            <i class="fa fa-solid fa-arrows-rotate" />
+            刷新
           </el-button>
           <el-input
             v-model="state.searchStr"
             class="search"
             size="large"
-            placeholder="请输入电话、拼音码、拼音、姓名查找"
+            placeholder="输入电话号查找"
             clearable
             @keydown.enter="getData(1)"
           />
@@ -53,50 +54,101 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" />
-        <el-table-column prop="avatar" label="头像" width="100">
+        <el-table-column prop="name" label="姓名" width="130">
           <template #default="scope">
-            <el-avatar
-              shape="square"
-              size="large"
-              v-if="scope.row.avatar.length > 5"
-              :src="scope.row.avatar"
-            />
+            {{ scope.row.name }}
+            <el-tag
+              v-if="scope.row.black == 1"
+              type="danger"
+              class="mx-1"
+              effect="dark"
+              round
+            >
+              已拉黑
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="name" label="姓名" width="80" />
-        <el-table-column prop="gender" label="性别" width="60">
+        <el-table-column prop="mobile" label="手机号" width="130" />
+        <el-table-column prop="remark" label="备注" width="130" />
+        <el-table-column label="地址">
           <template #default="scope">
-            {{ ["男", "女"][scope.row.gender] }}
+            <el-text
+              truncated
+              v-for="(item, index) in state.addr[scope.row.id]"
+              :key="index"
+              :alt="item.address"
+            >
+              {{ item.address }}
+            </el-text>
           </template>
         </el-table-column>
-        <el-table-column prop="phone" label="手机号" width="130">
+        <el-table-column prop="last_modify" label="最后编辑时间" width="180">
           <template #default="scope">
-            {{ scope.row.phone.split(",")[0] }}
+            <el-text truncated>
+              {{ scope.row.last_modify }}
+            </el-text>
           </template>
         </el-table-column>
-        <el-table-column prop="age" label="年龄" width="60"> </el-table-column>
-        <el-table-column prop="grade" label="学历" width="80">
+        <el-table-column label="类型 合同编号 到期时间" width="340">
           <template #default="scope">
-            {{
-              [
-                "",
-                "小学",
-                "初中",
-                "高中",
-                "中专",
-                "技校",
-                "大专",
-                "本科",
-                "硕士",
-                "博士",
-              ][scope.row.grade]
-            }}
+            <p
+              v-for="(item, index) in state.services[scope.row.id]"
+              :key="index"
+              style="text-align: left"
+            >
+              <el-text truncated>
+                <el-tag
+                  :type="
+                    [
+                      'info',
+                      'info',
+                      '',
+                      '',
+                      'success',
+                      'success',
+                      'success',
+                      '',
+                    ][item.type]
+                  "
+                  class="mx-1"
+                  effect="dark"
+                >
+                  {{
+                    [
+                      "暂无",
+                      "钟点",
+                      "包周",
+                      "包做",
+                      "年卡",
+                      "季卡",
+                      "月卡",
+                      "半月卡",
+                    ][item.type]
+                  }}
+                </el-tag>
+              </el-text>
+              <el-text truncated style="margin-left: 0.5rem">
+                {{ item.contract_code }}
+              </el-text>
+              <el-text
+                truncated
+                style="margin-left: 0.5rem"
+                v-if="item.type != 0 && item.type != 1"
+              >
+                <el-tag
+                  :type="
+                    item.expired ? 'danger' : item.near ? 'warning' : 'success'
+                  "
+                  class="mx-1"
+                  effect="dark"
+                >
+                  {{ item.expired ? "已" : item.near ? "临近" : "未" }}过期
+                </el-tag>
+                {{ item.end_time }}
+              </el-text>
+            </p>
           </template>
         </el-table-column>
-        <el-table-column prop="origin" label="籍贯" width="170" />
-        <el-table-column prop="address" label="现住址" />
-        <el-table-column prop="intro" label="简介" />
-        <el-table-column prop="note" label="备注" width="130" />
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a
@@ -129,11 +181,10 @@
       />
     </el-card>
     <EditDialogEmp ref="editRef" @reload="getData(0)" />
-  </Layout>
+  </layout>
 </template>
-
 <script setup>
-import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
+import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogEmp from "@/components/EditDialogEmp.vue";
 
@@ -142,13 +193,15 @@ const { urls, showMsg, req } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
   searchStr: "",
+  addr: [],
+  services: [],
   firstLoading: true,
   loading: true,
   tableData: [], // 数据列表
   multipleSelection: [], // 选中项
   total: 0, // 总条数
   currentPage: 1, // 当前页
-  pageSize: 20, // 分页大小
+  pageSize: 10, // 分页大小
   type: "add", // 操作类型
   level: 1,
   parent_id: 0,
@@ -161,39 +214,55 @@ onMounted(() => {
 const getData = (page = 0) => {
   if (page === 0) page = state.currentPage;
   state.loading = true;
-  const current_date = new Date();
-  const handle_succ = (d) => {
-    state.tableData = d.data;
-    state.tableData.forEach((t, i) => {
-      const age =
-        t.birth_date.trim() == "" || t.birth_date == "0000-00-00"
-          ? ""
-          : parseInt((current_date - new Date(t.birth_date)) / 31557600000);
-      state.tableData[i] = { ...t, age };
+  const currentDate = new Date();
+  const prosessData = (d) => {
+    state.addr = [];
+    state.services = d.services;
+    d.addr.forEach((a) => {
+      state.addr[a.customer_id]
+        ? state.addr[a.customer_id].push(a)
+        : (state.addr[a.customer_id] = [a]);
     });
+    for (const i in state.services) {
+      const s = state.services[i];
+      if (!s || s.length == 0) return;
+      const pros_data = (e, k) => {
+          const end_date = new Date(e.end_time);
+          const expired = end_date < currentDate;
+          const near = expired ? false : end_date - currentDate < 2678400000;
+          state.services[i][k] = { ...e, expired, near };
+        }
+      console.log(s);
+      console.log(typeof(s))
+        s && s.forEach(pros_data);
+        s.sort((a,b) => (new Date(b.end_time))-(new Date(a.end_time)));
+    }
+    state.tableData = [...d.data];
     state.loading = false;
     state.firstLoading = false;
     state.currentPage = d.current_page;
     state.pageSize = d.count_per_page;
     state.total = d.count;
     state.empty = "没有数据";
+    console.log(state);
   };
-  const handle_fail = (d) => {
-    console.log(d);
+  const handleErr = (d) => {
     console.error(d);
     state.loading = false;
     state.firstLoading = false;
     state.empty = "加载错误";
-    // showMsg.err('加载错误')
   };
-  state.searchStr.trim() == ""
-    ? req.get(`${urls.employee_list}/page/${page}`, handle_succ, handle_fail)
-    : req.post(
-        `${urls.employee_search}/page/${page}`,
-        { search: state.searchStr },
-        handle_succ,
-        handle_fail
-      );
+  if (state.searchStr.trim() == "")
+    req.get(`${urls.customer_list}/page/${page}`, prosessData, handleErr);
+  else
+    req.post(
+      `${urls.customer_search}/page/${page}`,
+      {
+        mobile: state.searchStr.trim(),
+      },
+      prosessData,
+      handleErr
+    );
 };
 const handleAdd = () => {
   editRef.value.open(0);
@@ -208,17 +277,17 @@ const handleDelete = () => {
   if (state.multipleSelection.length < 1)
     return showMsg.warn("您没有选择要删除的数据！");
   const ids = state.multipleSelection.map((d) => d.id);
-  req.post(urls.employee_delete, { ids }, () => getData());
+  req.post(urls.customer_delete, { ids }, () => getData());
 };
 // // 单个删除
 const handleDeleteOne = (id) => {
-  req.del(urls.employee_delete + "/id/" + id, () => getData());
+  req.del(urls.customer_delete + "/id/" + id, () => getData());
 };
 </script>
 
 <style scoped>
 .search {
-  width: 17rem;
+  width: 12rem;
   margin: 0 0.6rem;
 }
 </style>
