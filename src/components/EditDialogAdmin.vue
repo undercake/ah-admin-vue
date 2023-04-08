@@ -75,7 +75,7 @@ import { ElMessageBox } from "element-plus";
 
 const { urls, req, showMsg, hasRights } = getCurrentInstance().appContext.config.globalProperties;
 const emit = defineEmits();
-const formRef = ref(null);
+const formRef = ref();
 const state = reactive({
   id           : -1,
   is_edit      : false,
@@ -130,7 +130,7 @@ const get_user_info = ()=>{
     state.ruleForm.user_group = detail.user_group;
     state.ruleForm.mobile     = detail.mobile;
     state.load_all   = false;
-  });
+  }, close);
 }
 
 const get_group = ()=>{

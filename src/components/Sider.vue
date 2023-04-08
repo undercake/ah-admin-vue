@@ -3,7 +3,7 @@
     <el-aside class="aside">
       <div class="head">
         <div>
-          <span>vue3 admin</span>
+          <span @click="getRights">阿惠家政管理后台</span>
         </div>
       </div>
       <div class="line" />
@@ -12,16 +12,17 @@
         text-color="#fff"
         :default-active="state.path"
       >
-        <el-menu-item index="/index" @click="push_route('/index')"
-          ><i class="fa fa-solid fa-house"></i>首页</el-menu-item
-        >
+        <el-menu-item index="/index" @click="push_route('/index')">
+          <i class="fa fa-solid fa-house" />
+          首页
+        </el-menu-item>
         <el-sub-menu
           v-for="(title, index) in state.data"
           :key="title.id"
           :index="'-' + index"
         >
           <template #title>
-            <span> <i :class="'fa ' + title.icon"></i> {{ title.name }}</span>
+            <span> <i :class="'fa ' + title.icon" /> {{ title.name }} </span>
           </template>
           <el-menu-item-group v-if="title.children">
             <el-menu-item
@@ -29,18 +30,21 @@
               :key="item.id"
               :index="item.path"
               @click="push_route(item.path)"
-              >{{ item.name }}</el-menu-item
             >
+              {{ item.name }}
+            </el-menu-item>
           </el-menu-item-group>
           <el-menu-item-group v-else>
             <el-menu-item :index="title.path" @click="push_route(title.path)"
               ><i :class="'fa ' + item.icon"></i> <i :class="title.icon"></i>
-              {{ title.name }}</el-menu-item
-            >
+              {{ title.name }}
+            </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
-        <el-menu-item index="/my_pass" @click="push_route('/my_pass')"> 修改我的信息 </el-menu-item>
-        <el-sub-menu index="1">
+        <el-menu-item index="/my_pass" @click="push_route('/my_pass')">
+          <i class="fa fa-solid fa-user-pen" /> 修改我的信息
+        </el-menu-item>
+        <!-- <el-sub-menu index="1">
           <template #title>
             <span>Dashboard</span>
           </template>
@@ -97,8 +101,8 @@
               修改密码
             </el-menu-item>
           </el-menu-item-group>
-        </el-sub-menu>
-        <el-menu-item index="/account" @click="getRights"> 刷新 </el-menu-item>
+        </el-sub-menu> -->
+        <!-- <el-menu-item index="/account" @click="getRights"> 刷新 </el-menu-item> -->
       </el-menu>
     </el-aside>
   </el-scrollbar>

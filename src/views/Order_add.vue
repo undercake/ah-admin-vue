@@ -23,74 +23,128 @@
           </el-button>
         </div>
       </template>
-      <div v-if="!state.empty">
-        <div class="text item">姓名：{{ state.client_data.name }}</div>
-        <div class="text item">电话：{{ state.client_data.mobile }}</div>
-        <div class="text item">
-          剩余金额：{{ state.client_data.total_money }} 元
-        </div>
-        <div class="text item">
-          剩余次数：{{ state.client_data.total_count }} 次
-        </div>
-        <div class="text item">备注：{{ state.client_data.remark }}</div>
-
-        <div v-if="state.location_data.length > 0">
-          选择地址：
-          <el-radio-group v-model="state.local" size="large">
-            <el-radio-button
-              :label="item.id"
-              v-for="(item, index) in state.location_data"
-              :key="index"
-              @click="() => (state.local_id = item.id)"
-            >
-              面积：{{ item.area }}
-              地址：{{ item.address }}
-            </el-radio-button>
-          </el-radio-group>
-        </div>
-        <div v-if="state.serv_data.length > 0" style="margin-top: 10px">
-          选择服务项目：
-          <el-radio-group v-model="state.serv" size="large">
-            <el-radio-button
-              :label="item.id"
-              v-for="(item, index) in state.serv_data"
-              :key="index"
-              @click="() => (state.serv_id = item.id)"
-            >
-              <el-tag
-                :type="serv_type_color[item.type]"
-                class="mx-1"
-                effect="dark"
-              >
-                {{ serv_types[item.type] }}
-              </el-tag>
-              <el-text truncated style="margin-left: 0.5rem">
-                {{ item.contract_code }}
+      <div v-if="!state.empty" class="addr-selector">
+        <el-radio-group v-model="state.client_id" @change="addr_change">
+          <div v-for="(c, i) in state.client_data" :key="i">
+            <el-radio :label="c.id" size="large" border>
+              <el-text>
+                姓名：{{ c.name }} &nbsp;&nbsp; 电话：{{
+                  c.mobile
+                }}
+                &nbsp;&nbsp; 剩余金额：{{ c.total_money }} &nbsp;&nbsp;
+                剩余次数：{{ c.total_count }} &nbsp;&nbsp; 备注：{{ c.remark }}
               </el-text>
-              <el-text
-                truncated
-                style="margin-left: 0.5rem"
-                v-if="item.type != 1"
+            </el-radio>
+            <el-text class="edit" style="margin-left:-15px">
+              编辑
+            </el-text>
+            <el-popconfirm
+              title="确定删除吗？"
+              confirmButtonText="确定"
+              cancelButtonText="取消"
+              @confirm="handleDelete('client' ,c.id)"
+            >
+              <template #reference>
+                <el-text class="edit" style="margin-left:10px">删除</el-text>
+              </template>
+            </el-popconfirm>
+          </div>
+        </el-radio-group>
+      </div>
+      <el-row v-if="state.location_data.length > 0" :gutter="20">
+        <el-col :span="2">
+          选择地址：<br />
+          <el-text class="edit" v-if="state.client_id > 0" @click="handleEdit('addr')">
+            编辑
+          </el-text>
+        </el-col>
+        <el-col :span="20">
+          <div v-if="state.location_data.length > 0">
+            <el-radio-group v-model="state.local_id">
+              <div v-for="(c, i) in state.location_data" :key="i">
+                <el-radio
+                  :label="c.id"
+                  size="large"
+                  border
+                  v-if="c.customer_id == state.client_id"
+                >
+                  面积：{{ c.area }} 地址：{{ c.address }}
+                </el-radio>
+                <el-popconfirm
+                  title="确定删除吗？"
+                  confirmButtonText="确定"
+                  cancelButtonText="取消"
+                  v-if="c.customer_id == state.client_id"
+                  @confirm="handleDelete('location', c.id)"
+                >
+                  <template #reference>
+                    <el-text class="edit" style="margin-left:-15px">删除</el-text>
+                  </template>
+                </el-popconfirm>
+              </div>
+            </el-radio-group>
+          </div>
+        </el-col>
+      </el-row>
+      <el-row v-if="state.serv_data.length > 0" :gutter="20">
+        <el-col :span="2">
+          选择服务项目：<br />
+          <el-text class="edit" v-if="state.client_id > 0" @click="handleEdit('serv')">
+            编辑
+          </el-text>
+        </el-col>
+        <el-col :span="20">
+          <el-radio-group v-model="state.serv_id">
+            <div v-for="(c, i) in state.serv_data" :key="i">
+              <el-radio
+                :label="c.id"
+                size="large"
+                border
+                v-if="c.customer_id == state.client_id"
               >
                 <el-tag
-                  :type="
-                    item.expired ? 'danger' : item.near ? 'warning' : 'success'
-                  "
+                  :type="serv_type_color[c.type]"
                   class="mx-1"
                   effect="dark"
                 >
-                  {{ item.expired ? "已" : item.near ? "即将" : "未" }}过期
+                  {{ serv_types[c.type] }}
                 </el-tag>
-                {{ item.end_time }}
-              </el-text>
-              <el-text> {{ item.remark }} </el-text>
-            </el-radio-button>
+                <el-text truncated style="margin-left: 0.5rem">
+                  {{ c.contract_code }}
+                </el-text>
+                <el-text
+                  truncated
+                  style="margin-left: 0.5rem"
+                  v-if="c.type != 1"
+                >
+                  <el-tag
+                    :type="
+                      c.expired ? 'danger' : c.near ? 'warning' : 'success'
+                    "
+                    class="mx-1"
+                    effect="dark"
+                  >
+                    {{ c.expired ? "已" : c.near ? "即将" : "未" }}过期
+                  </el-tag>
+                  {{ c.end_time }}
+                </el-text>
+                <el-text> {{ c.remark }} </el-text>
+              </el-radio>
+              <el-popconfirm
+                title="确定删除吗？"
+                confirmButtonText="确定"
+                cancelButtonText="取消"
+                v-if="c.customer_id == state.client_id"
+                @confirm="handleDelete('serv', c.id)"
+              >
+                <template #reference>
+                  <el-text class="edit" style="margin-left:-15px">删除</el-text>
+                </template>
+              </el-popconfirm>
+            </div>
           </el-radio-group>
-        </div>
-      </div>
-      <div v-else>
-        
-      </div>
+        </el-col>
+      </el-row>
     </el-card>
   </layout>
 </template>
@@ -127,11 +181,10 @@ const state = reactive({
   loading: false,
   empty: false,
   searchStr: "",
+  client_id: 0,
   local_id: 0,
   serv_id: 0,
-  local: "",
-  serv: "",
-  client_data: {},
+  client_data: [],
   location_data: [],
   serv_data: [],
   formData: {
@@ -140,6 +193,14 @@ const state = reactive({
     mobile: "",
   },
 });
+
+const addr_change = () => {
+  state.local_id = 0;
+  state.serv_id = 0;
+};
+
+const handleDelete = (e,a) =>console.log(e,a);
+const handleEdit = (e,a) =>console.log(e,a);
 
 const getData = () => {
   state.loading = true;
@@ -158,8 +219,9 @@ const getData = () => {
         state.formData.mobile = state.searchStr;
         return;
       }
-      state.client_data = d.data[0];
+      state.client_data = d.data;
       state.location_data = d.addr;
+      console.log(state.location_data);
       const serv_data = [];
       for (const k in d.services) serv_data.push(...d.services[k]);
       serv_data.forEach((e, i) => {
@@ -169,6 +231,9 @@ const getData = () => {
         serv_data[i] = { ...e, expired, near };
       });
       state.serv_data = serv_data;
+      state.client_id = 0;
+      state.local_id = 0;
+      state.serv_id = 0;
     },
     (d) => {
       state.loading = false;
@@ -203,8 +268,15 @@ onMounted(() => {
   width: 12rem;
   margin: 0 0.6rem;
 }
+.edit {
+  color: #409eff;
+  cursor: pointer;
+}
 </style>
 <style>
+.addr-selector .el-radio-group > div {
+  width: 100%;
+}
 .el-radio-button {
   position: static;
   display: block;
@@ -215,9 +287,17 @@ onMounted(() => {
 label.el-radio-button--large .el-radio-button__inner,
 .el-radio-button:first-child .el-radio-button__inner,
 .el-radio-button:last-child .el-radio-button__inner {
+  height: 40px;
   text-align: left;
   width: 100%;
   border-left: none;
   border: none;
+}
+.el-row {
+  border-top: 1px solid var(--border-color);
+  margin-top: 0.8rem;
+}
+.el-radio-group > div:has(> label) {
+  height: 40px;
 }
 </style>

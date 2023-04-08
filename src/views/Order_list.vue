@@ -154,8 +154,9 @@
             <a
               style="cursor: pointer; margin-right: 10px"
               @click="handleEdit(scope.row.id)"
-              >修改</a
             >
+              修改
+            </a>
             <el-popconfirm
               title="确定删除吗？"
               confirmButtonText="确定"
@@ -227,15 +228,15 @@ const getData = (page = 0) => {
       const s = state.services[i];
       if (!s || s.length == 0) return;
       const pros_data = (e, k) => {
-          const end_date = new Date(e.end_time);
-          const expired = end_date < currentDate;
-          const near = expired ? false : end_date - currentDate < 2678400000;
-          state.services[i][k] = { ...e, expired, near };
-        }
+        const end_date = new Date(e.end_time);
+        const expired = end_date < currentDate;
+        const near = expired ? false : end_date - currentDate < 2678400000;
+        state.services[i][k] = { ...e, expired, near };
+      };
       console.log(s);
-      console.log(typeof(s))
-        s && s.forEach(pros_data);
-        s.sort((a,b) => (new Date(b.end_time))-(new Date(a.end_time)));
+      console.log(typeof s);
+      s && s.forEach(pros_data);
+      s.sort((a, b) => new Date(b.end_time) - new Date(a.end_time));
     }
     state.tableData = [...d.data];
     state.loading = false;

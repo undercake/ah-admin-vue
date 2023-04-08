@@ -76,7 +76,7 @@ const { urls, req, showMsg, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const emit = defineEmits();
 onMounted(() => {});
-const formRef = ref(null);
+const formRef = ref();
 const state = reactive({
   id: -1,
   is_edit: false,
@@ -132,7 +132,7 @@ const get_group_info = () => {
       .forEach((e) => state.rights_selected.add(parseInt(e)));
     console.log(detail, state.rights_selected);
     state.load_all = false;
-  });
+  }, close);
 };
 
 const get_rights = () => {

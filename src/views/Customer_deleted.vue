@@ -3,7 +3,11 @@
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
-    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
+    <el-card
+      class="category-container"
+      v-if="!state.firstLoading"
+      v-loading="state.loading"
+    >
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleRec">
@@ -37,21 +41,29 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" />
-        <el-table-column prop="name" label="姓名" width="80" />
-        <el-table-column prop="gender" label="性别" width="60">
+        <el-table-column prop="name" label="姓名" width="130">
           <template #default="scope">
-            {{ (['男', '女'])[scope.row.gender] }}
+            {{ scope.row.name }}
+            <el-tag
+              v-if="scope.row.black == 1"
+              type="danger"
+              class="mx-1"
+              effect="dark"
+              round
+            >
+              已拉黑
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="phone" label="手机号" width="130">
+        <el-table-column prop="mobile" label="手机号" width="130" />
+        <el-table-column prop="remark" label="备注" width="180" />
+        <el-table-column prop="last_modify" label="最后编辑时间" width="180">
           <template #default="scope">
-            {{ scope.row.phone.split(',')[0] }}
+            <el-text truncated>
+              {{ scope.row.last_modify }}
+            </el-text>
           </template>
         </el-table-column>
-        <el-table-column prop="origin" label="籍贯" width="170" />
-        <el-table-column prop="address" label="现住址" />
-        <el-table-column prop="intro" label="简介" />
-        <el-table-column prop="note" label="备注" width="130" />
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a
@@ -83,7 +95,6 @@
         @current-change="getData"
       />
     </el-card>
-    <EditDialogEmp ref="editRef" @reload="getData(0)" />
   </Layout>
 </template>
 
@@ -115,25 +126,23 @@ onMounted(() => {
 const getData = (page = 0) => {
   if (page === 0) page = state.currentPage;
   state.loading = true;
-  req.get(
-    `${urls.employee_deleted}/page/${page}`,
-    (d) => {
-      state.tableData = d.data;
-      state.loading = false;
-      state.firstLoading = false;
-      state.currentPage = d.current_page;
-      state.pageSize = d.count_per_page;
-      state.total = d.count;
-      state.empty = "没有数据";
-    },
-    (d) => {
-      console.log(d);
-      console.error(d);
-      state.loading = false;
-      state.firstLoading = false;
-      state.empty = "加载错误";
-    }
-  );
+  const prosessData = (d) => {
+    state.tableData = [...d.data];
+    state.loading = false;
+    state.firstLoading = false;
+    state.currentPage = d.current_page;
+    state.pageSize = d.count_per_page;
+    state.total = d.count;
+    state.empty = "没有数据";
+    console.log(state);
+  };
+  const handleErr = (d) => {
+    console.error(d);
+    state.loading = false;
+    state.firstLoading = false;
+    state.empty = "加载错误";
+  };
+  req.get(`${urls.customer_deleted}/page/${page}`, prosessData, handleErr);
 };
 const handleRec = (id = 0) => {
   const ids = state.multipleSelection.map((d) => d.id);
@@ -160,7 +169,8 @@ const handleSelectionChange = (val) => {
 // // 单个删除
 const handleDeleteOne = (id) => {
   console.log(id);
-  if (id == 0 && state.multipleSelection.length < 1) return showMsg.warn('您没有选择数据！');
+  if (id == 0 && state.multipleSelection.length < 1)
+    return showMsg.warn("您没有选择数据！");
   ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",

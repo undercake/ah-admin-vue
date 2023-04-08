@@ -6,7 +6,8 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import ElementPlus from 'unplugin-element-plus/vite' // 不加这个配置，ElMessage出不来
 
 // https://vitejs.dev/config/
-export default ({ mode }) => defineConfig({
+// export default ({ mode }) => defineConfig({
+export default defineConfig({
   plugins: [
     vue(),
     // 按需引入，主题色的配置，需要加上 importStyle: 'sass'
@@ -17,6 +18,22 @@ export default ({ mode }) => defineConfig({
     }),
     ElementPlus()
   ],
+  build:{
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+          //生产环境时移除console.log()
+          drop_console: true,
+          drop_debugger: true,
+      },
+    },
+    rollupOptions: {
+      external: [
+        '/static/back-light.png',
+        '/static/back-dark.jpg'
+      ]
+    }
+  },
   resolve: {
     alias: {
       '~': path.resolve(__dirname, './'),

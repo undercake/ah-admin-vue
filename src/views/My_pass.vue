@@ -74,8 +74,8 @@ import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import md5 from "js-md5";
 
-const nameRef = ref(null);
-const passRef = ref(null);
+const nameRef = ref();
+const passRef = ref();
 const { urls, req, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({

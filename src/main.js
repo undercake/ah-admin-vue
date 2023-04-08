@@ -2,7 +2,7 @@
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2023-03-03 17:20:58
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-04-06 14:39:37
+ * @LastEditTime: 2023-04-07 12:55:32
  * @FilePath: /ah-admin-vue/src/main.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -230,6 +230,13 @@ const urls = {
   order_add            : BaseUri + "/midas/order/add",
   order_delete         : BaseUri + "/midas/order/delete",
   order_alter          : BaseUri + "/midas/order/alter",
+  // !-------------------------------------------------------
+  customer_addr_del    : BaseUri + "/midas/customer/addr_del",
+  customer_addr_add    : BaseUri + "/midas/customer/addr_add",
+  customer_addr_alter  : BaseUri + "/midas/customer/addr_alter",
+  customer_serv_del    : BaseUri + "/midas/customer/serv_del",
+  customer_serv_add    : BaseUri + "/midas/customer/serv_add",
+  customer_serv_alter  : BaseUri + "/midas/customer/serv_alter",
 };
 
 const showMsg = {

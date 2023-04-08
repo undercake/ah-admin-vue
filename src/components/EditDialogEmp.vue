@@ -1,33 +1,58 @@
 <template>
   <el-dialog
-    v-model="state.is_edit"
-    :title="state.edit_id == 0 ? '添加员工' : '编辑员工'"
+    :title="state.edit_id == 0 ? '添加客户' : '编辑客户'"
+    :model-value="true"
     width="30%"
     center
     :close-on-click-modal="false"
-    :show-close="!state.disable_close"
+    :show-close="false"
   >
+    <template #header>
+      <span role="heading" class="el-dialog__title"
+        >{{ id == 0 ? "添加" : "编辑" }}服务</span
+      >
+      <button
+        class="el-dialog__headerbtn"
+        type="button"
+        :disabled="state.disable_close"
+        @click="handleClose"
+      >
+        <i class="el-icon el-dialog__close fa-solid fa-xmark-large fa-fw" />
+      </button>
+    </template>
     <el-skeleton :rows="5" animated v-if="state.emp_load" />
     <el-form
       :model="state.ruleForm"
-      :rules="state.rules"
+      :rules="rules"
       ref="formRef"
       label-width="100px"
       class="good-form"
       v-if="!state.emp_load"
     >
       <el-form-item label="头像" prop="avatar">
-              <el-upload
-              class="avatar-uploader"
-              :action="urls.upload_public"
-              :show-file-list="false"
-              :on-success="(...e)=>{handleUploadSuccess('avatar', ...e)}"
-              :before-upload="(...e)=>{beforeUpload('avatar', ...e)}"
-              accept="image/*"
-            >
-              <img v-if="state.avatar!= ''" :src="state.ruleForm.avatar" class="avatar" />
-              <i v-else class="fa fa-regular fa-plus-large"></i>
-            </el-upload>
+        <el-upload
+          class="avatar-uploader"
+          :action="urls.upload_public"
+          :show-file-list="false"
+          :on-success="
+            (...e) => {
+              handleUploadSuccess('avatar', ...e);
+            }
+          "
+          :before-upload="
+            (...e) => {
+              beforeUpload('avatar', ...e);
+            }
+          "
+          accept="image/*"
+        >
+          <img
+            v-if="state.avatar != ''"
+            :src="state.ruleForm.avatar"
+            class="avatar"
+          />
+          <i v-else class="fa fa-regular fa-plus-large"></i>
+        </el-upload>
       </el-form-item>
       <el-form-item label="姓名" prop="name">
         <el-input
@@ -76,22 +101,22 @@
       <el-form-item label="备注" prop="note">
         <el-input type="text" v-model="state.ruleForm.note"></el-input>
       </el-form-item>
-        <el-form-item label="出生日期" prop="birth_date">
-            <el-date-picker
-              type="date"
-              :editable="false"
-              placeholder="选择时间"
-              v-model="state.ruleForm.birth_date"
-            />
-        </el-form-item>
-        <el-form-item label="入职日期" prop="work_date">
-          <el-date-picker
-            type="date"
-            :editable="false"
-            placeholder="选择时间"
-            v-model="state.ruleForm.work_date"
-          />
-        </el-form-item>
+      <el-form-item label="出生日期" prop="birth_date">
+        <el-date-picker
+          type="date"
+          :editable="false"
+          placeholder="选择时间"
+          v-model="state.ruleForm.birth_date"
+        />
+      </el-form-item>
+      <el-form-item label="入职日期" prop="work_date">
+        <el-date-picker
+          type="date"
+          :editable="false"
+          placeholder="选择时间"
+          v-model="state.ruleForm.work_date"
+        />
+      </el-form-item>
       <el-form-item label="学历" prop="grade">
         <el-select
           v-model="state.ruleForm.grade"
@@ -117,24 +142,36 @@
         /></el-select>
       </el-form-item>
       <el-form-item label="详情图片" prop="img">
-              <el-upload
-              class="avatar-uploader"
-              :action="urls.upload_public"
-              :show-file-list="false"
-              :on-success="(...e)=>{handleUploadSuccess('img',...e)}"
-              :before-upload="(...e)=>{beforeUpload('img',...e)}"
-              accept="image/*"
-            >
-              <img v-if="state.ruleForm.img!= ''" :src="state.ruleForm.img" class="img" />
-              <i v-else class="fa fa-regular fa-plus-large"></i>
-            </el-upload>
+        <el-upload
+          class="avatar-uploader"
+          :action="urls.upload_public"
+          :show-file-list="false"
+          :on-success="
+            (...e) => {
+              handleUploadSuccess('img', ...e);
+            }
+          "
+          :before-upload="
+            (...e) => {
+              beforeUpload('img', ...e);
+            }
+          "
+          accept="image/*"
+        >
+          <img
+            v-if="state.ruleForm.img != ''"
+            :src="state.ruleForm.img"
+            class="img"
+          />
+          <i v-else class="fa fa-regular fa-plus-large"></i>
+        </el-upload>
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="close" :disabled="state.disable_close"
-          >取消</el-button
-        >
+        <el-button @click="handleClose" :disabled="state.disable_close">
+          取消
+        </el-button>
         <el-button
           type="primary"
           @click="submit_form"
@@ -152,7 +189,6 @@ import { pinyin } from "pinyin-pro";
 
 const { urls, req, showMsg, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
-const emit = defineEmits();
 onMounted(() => {});
 
 const v_city = {
@@ -192,16 +228,75 @@ const v_city = {
   82: "澳门",
   91: "国外",
 };
-const formRef = ref(null);
+
+const emit = defineEmits(["closed", "reload"]);
+const props = defineProps(["id"]);
+const rules = {
+  name: [{ required: "true", message: "姓名不能为空", trigger: ["blur"] }],
+  phone: [
+    { len: 11, message: "请输入正确的手机号", trigger: "blur" },
+    {
+      pattern: /^1[3456789]\d{9}$/,
+      message: "手机号码格式不正确",
+      trigger: "blur",
+    },
+  ],
+  id_code: [
+    //身份证号码为15位或者18位，15位时全为数字，18位前17位为数字，最后一位是校验位，可能为数字或字符X
+    {
+      pattern: /(^\d{18}$)|(^\d{17}(\d|X|x)$)/,
+      message: "身份证号格式不正确",
+      trigger: "blur",
+    },
+    //取身份证前两位,校验省份
+    {
+      validator: (_this, id) => v_city[id.slice(0, 2)] !== undefined,
+      message: "身份证号省份格式不正确",
+      trigger: "blur",
+    },
+    {
+      validator: (_this, id) => {
+        const _date = id.match(
+          /^(\d{6})(\d{4})(\d{2})(\d{2})(\d{3})([0-9]|X)$/
+        );
+        const new_date = new Date(_date[2] + "/" + _date[3] + "/" + _date[4]);
+        return (
+          new_date.getFullYear() == _date[2] &&
+          new_date.getMonth() + 1 == _date[3] &&
+          new_date.getDate() == _date[4]
+        );
+      },
+      message: "身份证号日期格式不正确",
+      trigger: "blur",
+    },
+    // 校验位
+    {
+      validator: (_this, id) => {
+        const intArr = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+        const intCh = ["1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"];
+        let val_sum = 0;
+        id.split("").forEach((d, i) => {
+          if (i >= 17) return;
+          val_sum += intArr[i] * parseInt(d);
+        });
+        return intCh[val_sum % 11] == id.slice(17, 18);
+      },
+      message: "身份证号校验格式不正确",
+      trigger: "blur",
+    },
+  ],
+  pinyin: [{ required: "true", message: "拼音不能为空", trigger: ["blur"] }],
+  pym: [{ required: "true", message: "拼音码不能为空", trigger: ["blur"] }],
+};
+const id = props["id"];
+const formRef = ref();
 const state = reactive({
-  id: -1,
-  is_edit: false,
   emp_load: false,
   load_all: false,
   disable_close: false,
   emp_list: [],
   ruleForm: {
-    avatar:'',
+    avatar: "",
     name: "",
     phone: "",
     address: "",
@@ -213,78 +308,19 @@ const state = reactive({
     birth_date: "",
     work_date: "",
     grade: 0,
-    origin:'',
-    workee:'',
-    note:''
-  },
-  rules: {
-    name: [{ required: "true", message: "姓名不能为空", trigger: ["blur"] }],
-    phone: [
-      { len: 11, message: "请输入正确的手机号", trigger: "blur" },
-      {
-        pattern: /^1[3456789]\d{9}$/,
-        message: "手机号码格式不正确",
-        trigger: "blur",
-      },
-    ],
-    id_code: [
-      //身份证号码为15位或者18位，15位时全为数字，18位前17位为数字，最后一位是校验位，可能为数字或字符X
-      {
-        pattern: /(^\d{18}$)|(^\d{17}(\d|X|x)$)/,
-        message: "身份证号格式不正确",
-        trigger: "blur",
-      },
-      //取身份证前两位,校验省份
-      {
-        validator: (_this, id) => v_city[id.slice(0, 2)] !== undefined,
-        message: "身份证号省份格式不正确",
-        trigger: "blur",
-      },
-      {
-        validator: (_this, id) => {
-          const _date = id.match(/^(\d{6})(\d{4})(\d{2})(\d{2})(\d{3})([0-9]|X)$/);
-          const new_date = new Date(_date[2] + "/" + _date[3] + "/" + _date[4]);
-          return new_date.getFullYear() == _date[2] &&
-                  new_date.getMonth() + 1 == _date[3] &&
-                  new_date.getDate() == _date[4];
-        },
-        message: "身份证号日期格式不正确",
-        trigger: "blur",
-      },
-      // 校验位
-      {
-        validator: (_this, id) => {
-          const intArr = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
-          const intCh = ["1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"];
-          let val_sum = 0;
-          id.split('').forEach((d, i) => {
-            if (i >= 17) return;
-            val_sum += intArr[i] * parseInt(d);
-          });
-          return intCh[val_sum % 11] == id.slice(17,18);
-        },
-        message: "身份证号校验格式不正确",
-        trigger: "blur",
-      },
-    ],
-    pinyin: [{ required: "true", message: "拼音不能为空", trigger: ["blur"] }],
-    pym: [{ required: "true", message: "拼音码不能为空", trigger: ["blur"] }],
+    origin: "",
+    workee: "",
+    note: "",
   },
 });
 
-// 开启编辑窗口
-const open = (id = 0) => {
-  console.log(hasRights("/employee/edit"));
-  if (!hasRights("/employee/edit")) return showMsg.err("您没有权限编辑此项目");
-    state.is_edit = true;
-  if (id === state.id) return (state.is_edit = true);
-  if (id === 0) return (state.is_edit = true);
-  if (id > 0) {
-    state.id = id;
-    get_emp_info();
-  }
+const handleClose = (e) => {
+  emit("closed", e);
 };
 
+onMounted(() => {
+  get_emp_info();
+});
 // 名字变化时更新拼音和拼音码
 const name_change = () => {
   state.ruleForm.pinyin = pinyin(state.ruleForm.name, {
@@ -302,19 +338,18 @@ const name_change = () => {
   }).replaceAll(" ", "");
 };
 
-const close = () => (state.is_edit = false);
-
 // 获取初始信息
 const get_emp_info = () => {
+  if (id !== undefined && id < 1) return;
   state.load_all = true;
-  const id = state.id;
-  req.get(`${urls.employee_detail}/id/${id}`, ({ detail }) => { detail;
-    const {birth_date,work_date} = detail;
-    state.ruleForm = {...detail};
-    state.ruleForm.birth_date = birth_date == '0000-00-00' ? '' : birth_date;
-    state.ruleForm.work_date = work_date == '0000-00-00' ? '' : work_date;
+  req.get(`${urls.employee_detail}/id/${id}`, ({ detail }) => {
+    detail;
+    const { birth_date, work_date } = detail;
+    state.ruleForm = { ...detail };
+    state.ruleForm.birth_date = birth_date == "0000-00-00" ? "" : birth_date;
+    state.ruleForm.work_date = work_date == "0000-00-00" ? "" : work_date;
     state.load_all = false;
-  });
+  }, ()=>emit("closed", e));
 };
 
 const submit_form = async () => {
@@ -341,11 +376,10 @@ const submit_form = async () => {
       grade,
       origin,
       workee,
-      note
+      note,
     } = state.ruleForm;
-    const id = state.id;
-    const url = state.id == 0 ? urls.employee_add : urls.employee_alter;
-    const method = state.id == 0 ? "post" : "put";
+    const url = id == 0 ? urls.employee_add : urls.employee_alter;
+    const method = id == 0 ? "post" : "put";
     req[method](
       url,
       {
@@ -364,17 +398,16 @@ const submit_form = async () => {
         id,
         origin,
         workee,
-        note
+        note,
       },
       (d) => {
-        state.is_edit = false;
         state.disable_close = false;
         state.ruleForm = {
           name: "",
         };
-        state.id = -1;
         showMsg.succ("提交成功！");
         emit("reload", true);
+        emit("closed", e);
       },
       (e) => {
         console.warn(e);
@@ -385,36 +418,36 @@ const submit_form = async () => {
 };
 
 const handleUploadSuccess = (type, response, uploadFile) => {
-  console.log('res', response);
+  console.log("res", response);
   if (response.code == 0) state.ruleForm[type] = response.path;
   else showMsg.err(response.message);
-  console.log('upload', uploadFile);
-}
+  console.log("upload", uploadFile);
+};
 
 const beforeUpload = (type, rawFile) => {
   let res = true;
-  const allowType = ['image/jpeg', 'image/png'];
+  const allowType = ["image/jpeg", "image/png"];
   const fileSize = rawFile.size / 1024;
   console.log(type, rawFile, fileSize);
   if (!allowType.includes(rawFile.type)) {
-    showMsg.err('文件格式不正确，必须为jpg或者png格式');
+    showMsg.err("文件格式不正确，必须为jpg或者png格式");
     console.log(-1);
-    return (new Promise).reject();
+    return new Promise().reject();
   }
-  if (type == 'avatar' && fileSize > 300) {
-    showMsg.err('头像不能大于300K');
+  if (type == "avatar" && fileSize > 300) {
+    showMsg.err("头像不能大于300K");
     console.log(-2);
-    return (new Promise).reject();
+    return new Promise().reject();
   }
   if (fileSize / 1024 > 2) {
-    showMsg.err('图片不能大于2M');
+    showMsg.err("图片不能大于2M");
     console.log(-3);
-    return (new Promise).reject();
+    return new Promise().reject();
   }
   return res;
-}
+};
 
-defineExpose({ open, close });
+// defineExpose({ open, close });
 </script>
 <style scoped>
 .dialog-footer button:first-child {
@@ -440,11 +473,11 @@ defineExpose({ open, close });
   margin-right: 0;
   float: right;
 }
-img.avatar{
+img.avatar {
   width: 80px;
   height: 80px;
 }
-img.img{
+img.img {
   width: 280px;
   height: 280px;
 }

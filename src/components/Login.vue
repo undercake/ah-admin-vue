@@ -75,7 +75,7 @@ import { getCurrentInstance, ref, reactive, onMounted } from "vue";
 import { localSet } from "../utils";
 const { urls, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
-const loginForm = ref(null);
+const loginForm = ref();
 let timer = 0;
 
 const state = reactive({

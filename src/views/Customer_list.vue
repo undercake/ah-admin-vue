@@ -1,5 +1,5 @@
 <template>
-  <Layout>
+  <layout>
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
@@ -10,7 +10,7 @@
     >
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd">
+          <el-button type="primary" @click="handleEdit(0)">
             <i class="fa fa-solid fa-plus"></i>
             增加
           </el-button>
@@ -82,13 +82,8 @@
             </el-text>
           </template>
         </el-table-column>
-        <el-table-column prop="last_modify" label="最后编辑时间" width="180">
-          <template #default="scope">
-            <el-text truncated>
-              {{ scope.row.last_modify }}
-            </el-text>
-          </template>
-        </el-table-column>
+        <el-table-column prop="total_money" label="余额" width="80" />
+        <el-table-column prop="total_count" label="余次" width="60" />
         <el-table-column label="类型 合同编号 到期时间" width="340">
           <template #default="scope">
             <p
@@ -146,6 +141,9 @@
                 </el-tag>
                 {{ item.end_time }}
               </el-text>
+              <el-text truncated style="margin-left: 0.5rem;background: var(--el-color-primary-light-7);">
+                {{ item.remark }}
+              </el-text>
             </p>
           </template>
         </el-table-column>
@@ -180,18 +178,23 @@
         @current-change="getData"
       />
     </el-card>
-    <EditDialogEmp ref="editRef" @reload="getData(0)" />
-  </Layout>
+    <edit-dialog-customer
+      v-if="state.edit_id > -1"
+      :id="state.edit_id"
+      @closed="handleClosed"
+      @reload="getData(0)"
+    />
+  </layout>
 </template>
 <script setup>
-import { onMounted, reactive, ref, getCurrentInstance } from "vue";
+import { onMounted, reactive, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
-import EditDialogEmp from "@/components/EditDialogEmp.vue";
+import EditDialogCustomer from "@/components/EditDialogCustomer.vue";
 
-const editRef = ref(false);
-const { urls, showMsg, req } =
+const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  edit_id: -1,
   searchStr: "",
   addr: [],
   services: [],
@@ -212,6 +215,7 @@ onMounted(() => {
 });
 // 获取数据
 const getData = (page = 0) => {
+  state.edit_id = -1;
   if (page === 0) page = state.currentPage;
   state.loading = true;
   const currentDate = new Date();
@@ -264,11 +268,13 @@ const getData = (page = 0) => {
       handleErr
     );
 };
-const handleAdd = () => {
-  editRef.value.open(0);
-};
 // 修改分类
-const handleEdit = (id) => editRef.value.open(id);
+const handleEdit = (id) => {
+  if (!hasRights("/customer/edit")) return showMsg.err("您没有权限编辑此项目");
+  state.edit_id = id;
+}
+
+const handleClosed = () => state.edit_id = -1;
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除

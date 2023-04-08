@@ -92,7 +92,7 @@ import axios from "@/utils/axios";
 import DialogAddCategory from "@/components/DialogAddCategory.vue";
 import Layout from "@/components/Layout.vue";
 
-const addCate = ref(null);
+const addCate = ref();
 const router = useRouter(); // 声明路由实例
 const route = useRoute(); // 获取路由参数
 const state = reactive({

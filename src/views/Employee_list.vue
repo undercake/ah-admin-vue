@@ -1,5 +1,5 @@
 <template>
-  <Layout>
+  <layout>
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
@@ -10,7 +10,7 @@
     >
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd">
+          <el-button type="primary" @click="handleEdit(0)">
             <i class="fa fa-solid fa-plus"></i>
             增加
           </el-button>
@@ -128,8 +128,13 @@
         @current-change="getData"
       />
     </el-card>
-    <EditDialogEmp ref="editRef" @reload="getData(0)" />
-  </Layout>
+    <edit-dialog-emp
+      v-if="state.edit_id > -1"
+      :id="state.edit_id"
+      @closed="handleClosed"
+      @reload="getData(0)"
+    />
+  </layout>
 </template>
 
 <script setup>
@@ -137,10 +142,10 @@ import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogEmp from "@/components/EditDialogEmp.vue";
 
-const editRef = ref(false);
-const { urls, showMsg, req } =
+const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  edit_id: -1,
   searchStr: "",
   firstLoading: true,
   loading: true,
@@ -195,11 +200,13 @@ const getData = (page = 0) => {
         handle_fail
       );
 };
-const handleAdd = () => {
-  editRef.value.open(0);
-};
 // 修改分类
-const handleEdit = (id) => editRef.value.open(id);
+const handleEdit = (id) => {
+  if (!hasRights("/employee/edit")) return showMsg.err("您没有权限编辑此项目");
+  state.edit_id = id;
+}
+// editRef.value.open(id);
+const handleClosed = () => (state.edit_id = -1);
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除

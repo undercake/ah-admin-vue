@@ -37,7 +37,7 @@ const props = defineProps({
   configType: Number,
   reload: Function
 })
-const formRef = ref(null)
+const formRef = ref()
 const state = reactive({
   visible: false,
   ruleForm: {

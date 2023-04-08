@@ -175,7 +175,7 @@ const { urls, req, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
 const emit = defineEmits(["closed", "reload"]);
 const props = defineProps(["id"]);
-const formRef = ref(null);
+const formRef = ref();
 const state = reactive({
   progress: 0,
   dialogVisible: false,
@@ -262,7 +262,7 @@ const get_service_info = () => {
     };
     state.load_all = false;
     console.log(state.ruleForm);
-  });
+  }, ()=>emit("closed", e));
   req.get(urls.services_category, ({ data }) => (state.category = data));
 };
 

@@ -32,7 +32,7 @@ const props = defineProps({
   reload: Function // 添加或修改完后，刷新列表页
 })
 
-const formRef = ref(null)
+const formRef = ref()
 const route = useRoute()
 const state = reactive({
   visible: false,

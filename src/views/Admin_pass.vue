@@ -50,7 +50,7 @@ import { ElMessage } from "element-plus";
 import Layout from "@/components/Layout.vue";
 import md5 from "js-md5";
 
-const nameRef = ref(null);
+const nameRef = ref();
 const {urls, req, showMsg} = getCurrentInstance().appContext.config.globalProperties;
 const rpt_pass = (rule, value, callback) => {
       if (state.passForm.newpass !== value) {

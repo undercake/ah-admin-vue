@@ -48,7 +48,7 @@ const props = defineProps({
   reload: Function
 })
 
-const formRef = ref(null)
+const formRef = ref()
 const state = reactive({
   uploadImgServer,
   token: localGet('token') || '',

@@ -89,7 +89,7 @@ const get_service_opt = () => {
     });
     state.emp_load = false;
     console.log(state.ruleForm);
-  });
+  }, emit("closed", e));
   req.get(
     `${urls.services_options}/id/${id}`,
     ({ data }) => (state.options = data)

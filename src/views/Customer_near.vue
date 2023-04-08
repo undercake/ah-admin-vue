@@ -10,7 +10,7 @@
     >
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd">
+          <el-button type="primary" @click="handleEdit(0)">
             <i class="fa fa-solid fa-plus"></i>
             增加
           </el-button>
@@ -190,18 +190,23 @@
         @current-change="getData"
       />
     </el-card>
-    <EditDialogEmp ref="editRef" @reload="getData(0)" />
+    <edit-dialog-customer
+      v-if="state.edit_id > -1"
+      :id="state.edit_id"
+      @closed="handleClosed"
+      @reload="getData(0)"
+    />
   </Layout>
 </template>
 <script setup>
 import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
-import EditDialogEmp from "@/components/EditDialogEmp.vue";
+import EditDialogCustomer from "@/components/EditDialogCustomer.vue";
 
-const editRef = ref(false);
 const { urls, showMsg, req } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  edit_id: -1,
   searchStr: "",
   addr: [],
   services: [],
@@ -264,11 +269,7 @@ const getData = (page = 0) => {
   };
   req.get(`${urls.customer_near}/page/${page}`, prosessData, handleErr);
 };
-const handleAdd = () => {
-  editRef.value.open(0);
-};
-// 修改分类
-const handleEdit = (id) => editRef.value.open(id);
+const handleClosed = () => state.edit_id = -1;
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除

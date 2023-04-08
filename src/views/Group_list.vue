@@ -41,7 +41,7 @@
         <el-table-column prop="rights" label="权限">
           <template #default="scope">
             <el-text truncated>
-              {{ scope.row.rights }}
+              {{ scope.row.rights.split(',').length }}  项
             </el-text>
           </template>
         </el-table-column>
