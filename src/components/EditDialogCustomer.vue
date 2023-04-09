@@ -70,12 +70,25 @@
         </template>
         <div v-for="(l, i) in state.address" :key="i" class="text item">
           <el-text> 地址 {{ i + 1 }} </el-text>
-          <el-form-item label="地址" :prop="address + i">
+          <el-popconfirm
+            title="确定删除吗？"
+            confirmButtonText="确定"
+            cancelButtonText="取消"
+            @confirm="handleDelete('address', i)"
+          >
+            <template #reference>
+              <a style="cursor: pointer">删除</a>
+            </template>
+          </el-popconfirm>
+          <el-form-item label="地址">
             <el-input type="text" v-model="state.address[i].address" />
           </el-form-item>
-          <el-form-item label="面积" :prop="area + i">
+          <el-form-item label="面积">
             <el-input type="number" v-model="state.address[i].area" />
           </el-form-item>
+        </div>
+        <div class="text-center text-plus" @click="handleAdd('address')">
+          <i class="fa-solid fa-plus"></i>
         </div>
       </el-card>
       <el-card class="box-card">
@@ -86,17 +99,27 @@
         </template>
         <div v-for="(l, i) in state.contract" :key="i" class="text item">
           <el-text> 合同 {{ i + 1 }} </el-text>
-          <el-form-item label="合同编号" :prop="contract_code + i">
+          <el-popconfirm
+            title="确定删除吗？"
+            confirmButtonText="确定"
+            cancelButtonText="取消"
+            @confirm="handleDelete('contract', i)"
+          >
+            <template #reference>
+              <a style="cursor: pointer">删除</a>
+            </template>
+          </el-popconfirm>
+          <el-form-item label="合同编号">
             <el-input type="text" v-model="state.contract[i].contract_code" />
           </el-form-item>
-          <el-form-item label="服务类型" :prop="type + i">
+          <el-form-item label="服务类型">
             <el-select-v2
               v-model="state.contract[i].type"
               :options="options"
               placeholder="Please select"
             />
           </el-form-item>
-          <el-form-item label="服务时间" :prop="start_time + i">
+          <el-form-item label="服务时间">
             <el-date-picker
               v-model="state.contract[i].time"
               type="daterange"
@@ -105,9 +128,12 @@
               :default-time="state.contract[i].time"
             />
           </el-form-item>
-          <el-form-item label="备注" :prop="remark + i">
+          <el-form-item label="备注">
             <el-input type="text" v-model="state.contract[i].remark" />
           </el-form-item>
+        </div>
+        <div class="text-center text-plus" @click="handleAdd('contract')">
+          <i class="fa-solid fa-plus"></i>
         </div>
       </el-card>
     </el-scrollbar>
@@ -131,24 +157,17 @@
 import { reactive, onMounted, getCurrentInstance, ref } from "vue";
 import { pinyin } from "pinyin-pro";
 
-const { urls, req, showMsg } =
-  getCurrentInstance().appContext.config.globalProperties;
-onMounted(() => {});
+const { urls, req, showMsg } = getCurrentInstance().appContext.config.globalProperties;
 
-const emit = defineEmits(["closed", "reload"]);
-const props = defineProps(["id"]);
-const rules = {
-  name: [{ required: "true", message: "姓名不能为空", trigger: ["blur"] }],
-  mobile: [
-    { len: 11, message: "请输入正确的手机号", trigger: "blur" },
-    {
-      pattern: /^1[3456789]\d{9}$/,
-      message: "手机号码格式不正确",
-      trigger: "blur",
-    },
-  ],
+const emit    = defineEmits(["closed", "reload"]);
+const props   = defineProps(["id"]);
+const id      = props["id"];
+const formRef = ref();
+const rules   = {
+  name  : [{ required: "true", message: "姓名不能为空", trigger: ["blur"] }],
   pinyin: [{ required: "true", message: "拼音不能为空", trigger: ["blur"] }],
-  pym: [{ required: "true", message: "拼音码不能为空", trigger: ["blur"] }],
+  pym   : [{ required: "true", message: "拼音码不能为空", trigger: ["blur"] }],
+  mobile: [{ required: "true", message: "请输入手机号", trigger: "blur" }],
 };
 const options = [
   { value: 0, label: "暂无" },
@@ -160,13 +179,13 @@ const options = [
   { value: 6, label: "月卡" },
   { value: 7, label: "半月卡" },
 ];
-const id = props["id"];
-const formRef = ref();
 const state = reactive({
   emp_load: false,
   disable_close: false,
   contract: [],
+  contract_del: new Set(),
   address: [],
+  address_del: new Set(),
   ruleForm: {
     name: "",
     mobile: "",
@@ -200,7 +219,9 @@ const name_change = () => {
     toneType: "none",
     nonZh: "removed",
     v: true,
-  }).replaceAll(" ", "");
+  })
+    .replaceAll(" ", "")
+    .toUpperCase();
 };
 
 // 获取初始信息
@@ -211,16 +232,32 @@ const get_emp_info = () => {
     `${urls.customer_detail}/id/${id}`,
     ({ detail, contract, address }) => {
       state.ruleForm = { ...detail };
-      contract.forEach((c,i) => {
-        const {start_time, end_time} = c;
-        contract[i] = {...c, time: [new Date(start_time), new Date(end_time)]};
+      contract.forEach((c, i) => {
+        const { start_time, end_time } = c;
+        contract[i] = {
+          ...c,
+          time: [new Date(start_time), new Date(end_time)],
+        };
       });
       state.contract = contract;
       state.address = address;
       state.emp_load = false;
     },
-    () => emit("closed", e)
+    () => emit("closed", true)
   );
+};
+
+const trimArrs = (d) => {
+  d.forEach((c, i) => {
+    for (const k in c) {
+      if (typeof c[k] == "string") d[i][k] = c[k].trim();
+    }
+    if (c?.time) {
+      d[i]['start_time'] = c.time[0] && c.time[0] instanceof Date ? `${c.time[0].getFullYear()}-${c.time[0].getMonth() + 1}-${c.time[0].getDate()}` : '';
+      d[i]['end_time'] = c.time[1] && c.time[1] instanceof Date ? `${c.time[1].getFullYear()}-${c.time[1].getMonth() + 1}-${c.time[1].getDate()}` : '';
+    }
+  });
+  return d;
 };
 
 const submit_form = async () => {
@@ -242,6 +279,9 @@ const submit_form = async () => {
       total_money,
       total_count,
     } = state.ruleForm;
+    let { contract, address, contract_del, address_del } = state;
+    contract = trimArrs(contract);
+    address = trimArrs(address);
     const url = id == 0 ? urls.customer_add : urls.customer_alter;
     const method = id == 0 ? "post" : "put";
     req[method](
@@ -249,13 +289,19 @@ const submit_form = async () => {
       {
         id,
         name,
-        mobile,
-        black,
+        mobile: mobile.replaceAll('，', ','),
+        black: black === true ? 1 : 0,
         pym,
         pinyin,
         remark,
         total_money,
         total_count,
+        contract_del: Array.from(contract_del),
+        address_del: Array.from(address_del),
+        contract: contract.filter(
+          (c) => c.type !== 0 || c.contract_code.trim() !== ""
+        ),
+        address: address.filter((a) => a.address.trim() !== ""),
       },
       (d) => {
         state.disable_close = false;
@@ -273,37 +319,30 @@ const submit_form = async () => {
     );
   });
 };
-
-const handleUploadSuccess = (type, response, uploadFile) => {
-  console.log("res", response);
-  if (response.code == 0) state.ruleForm[type] = response.path;
-  else showMsg.err(response.message);
-  console.log("upload", uploadFile);
+const example = {
+  contract: {
+    contract_code: "",
+    contract_path: "",
+    create_time: "",
+    customer_id: id,
+    deleted: 0,
+    id: 0,
+    remark: "",
+    time: [null, null],
+    type: 0,
+  },
+  address: {
+    address: "",
+    area: "",
+    customer_id: id,
+    id: 0,
+  },
 };
-
-const beforeUpload = (type, rawFile) => {
-  let res = true;
-  const allowType = ["image/jpeg", "image/png"];
-  const fileSize = rawFile.size / 1024;
-  console.log(type, rawFile, fileSize);
-  if (!allowType.includes(rawFile.type)) {
-    showMsg.err("文件格式不正确，必须为jpg或者png格式");
-    console.log(-1);
-    return new Promise().reject();
-  }
-  if (type == "avatar" && fileSize > 300) {
-    showMsg.err("头像不能大于300K");
-    console.log(-2);
-    return new Promise().reject();
-  }
-  if (fileSize / 1024 > 2) {
-    showMsg.err("图片不能大于2M");
-    console.log(-3);
-    return new Promise().reject();
-  }
-  return res;
-};
-
+const handleAdd = (a) => state[a].push({ ...example[a] });
+const handleDelete = (a, ind) =>{
+  state[a][ind].id !== 0 && state[`${a}_del`].add(state[a][ind].id);
+  state[a] = state[a].filter((i, j) => j !== ind);
+}
 // defineExpose({ open, close });
 </script>
 <style scoped>
@@ -343,7 +382,11 @@ img.img {
 }
 
 .item {
-  margin-bottom: 18px;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.text.item {
+  border-bottom: 1px solid var(--el-border-color);
 }
 </style>
 <style>
@@ -367,5 +410,17 @@ img.img {
   height: 80px;
   line-height: 80px;
   text-align: center;
+}
+.text-plus {
+  cursor: pointer;
+  text-align: center;
+  font-size: 2rem;
+  line-height: 4rem;
+  color: var(--el-color-primary-dark-2);
+  border: var(--el-color-primary-dark-2) dotted 1px;
+}
+.text-plus:hover {
+  color: var(--el-color-primary-light-3);
+  border: var(--el-color-primary-light-3) solid 1px;
 }
 </style>

@@ -141,7 +141,13 @@
                 </el-tag>
                 {{ item.end_time }}
               </el-text>
-              <el-text truncated style="margin-left: 0.5rem;background: var(--el-color-primary-light-7);">
+              <el-text
+                truncated
+                style="
+                  margin-left: 0.5rem;
+                  background: var(--el-color-warning-light-7);
+                "
+              >
                 {{ item.remark }}
               </el-text>
             </p>
@@ -152,8 +158,9 @@
             <a
               style="cursor: pointer; margin-right: 10px"
               @click="handleEdit(scope.row.id)"
-              >修改</a
             >
+              修改
+            </a>
             <el-popconfirm
               title="确定删除吗？"
               confirmButtonText="确定"
@@ -161,7 +168,24 @@
               @confirm="handleDeleteOne(scope.row.id)"
             >
               <template #reference>
-                <a style="cursor: pointer">删除</a>
+                <a style="cursor: pointer"> 删除 </a>
+              </template>
+            </el-popconfirm>
+            <el-popconfirm
+              :title="scope.row.black == 1 ? '取消拉黑吗？' : '确定拉黑吗？'"
+              confirmButtonText="确定"
+              cancelButtonText="取消"
+              @confirm="
+                () =>
+                  scope.row.black == 1
+                    ? handleRecBlack(scope.row.id)
+                    : handleBlack(scope.row.id)
+              "
+            >
+              <template #reference>
+                <a style="cursor: pointer;color:#F56C6C"
+                  >{{ scope.row.black == 1 ? "取消" : "" }}拉黑</a
+                >
               </template>
             </el-popconfirm>
           </template>
@@ -231,15 +255,15 @@ const getData = (page = 0) => {
       const s = state.services[i];
       if (!s || s.length == 0) return;
       const pros_data = (e, k) => {
-          const end_date = new Date(e.end_time);
-          const expired = end_date < currentDate;
-          const near = expired ? false : end_date - currentDate < 2678400000;
-          state.services[i][k] = { ...e, expired, near };
-        }
+        const end_date = new Date(e.end_time);
+        const expired = end_date < currentDate;
+        const near = expired ? false : end_date - currentDate < 2678400000;
+        state.services[i][k] = { ...e, expired, near };
+      };
       console.log(s);
-      console.log(typeof(s))
-        s && s.forEach(pros_data);
-        s.sort((a,b) => (new Date(b.end_time))-(new Date(a.end_time)));
+      console.log(typeof s);
+      s && s.forEach(pros_data);
+      s.sort((a, b) => new Date(b.end_time) - new Date(a.end_time));
     }
     state.tableData = [...d.data];
     state.loading = false;
@@ -272,9 +296,9 @@ const getData = (page = 0) => {
 const handleEdit = (id) => {
   if (!hasRights("/customer/edit")) return showMsg.err("您没有权限编辑此项目");
   state.edit_id = id;
-}
+};
 
-const handleClosed = () => state.edit_id = -1;
+const handleClosed = () => (state.edit_id = -1);
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除
@@ -289,6 +313,11 @@ const handleDelete = () => {
 const handleDeleteOne = (id) => {
   req.del(urls.customer_delete + "/id/" + id, () => getData());
 };
+
+const handleBlack = (id) =>
+  req.get(`${urls.client_quick_blk}/id/${id}`, () => getData());
+const handleRecBlack = (id) =>
+  req.get(`${urls.client_quick_rec_blk}/id/${id}`, () => getData());
 </script>
 
 <style scoped>
