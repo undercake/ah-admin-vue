@@ -10,7 +10,7 @@
     >
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd">
+          <el-button type="primary" @click="handleEdit(0)">
             <i class="fa fa-solid fa-plus"></i>
             增加
           </el-button>
@@ -181,7 +181,12 @@
         @current-change="getData"
       />
     </el-card>
-    <EditDialogEmp ref="editRef" @reload="getData(0)" />
+    <edit-dialog-emp
+      v-if="state.edit_id > -1"
+      :id="state.edit_id"
+      @closed="handleClosed"
+      @reload="getData(0)"
+    />
   </layout>
 </template>
 <script setup>
@@ -189,10 +194,10 @@ import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogEmp from "@/components/EditDialogEmp.vue";
 
-const editRef = ref(false);
-const { urls, showMsg, req } =
+const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  edit_id: -1,
   searchStr: "",
   addr: [],
   services: [],
@@ -213,10 +218,11 @@ onMounted(() => {
 });
 // 获取数据
 const getData = (page = 0) => {
+  state.edit_id = -1;
   if (page === 0) page = state.currentPage;
   state.loading = true;
   const currentDate = new Date();
-  const prosessData = (d) => {
+  const processData = (d) => {
     state.addr = [];
     state.services = d.services;
     d.addr.forEach((a) => {
@@ -233,8 +239,6 @@ const getData = (page = 0) => {
         const near = expired ? false : end_date - currentDate < 2678400000;
         state.services[i][k] = { ...e, expired, near };
       };
-      console.log(s);
-      console.log(typeof s);
       s && s.forEach(pros_data);
       s.sort((a, b) => new Date(b.end_time) - new Date(a.end_time));
     }
@@ -254,23 +258,24 @@ const getData = (page = 0) => {
     state.empty = "加载错误";
   };
   if (state.searchStr.trim() == "")
-    req.get(`${urls.customer_list}/page/${page}`, prosessData, handleErr);
+    req.get(`${urls.customer_list}/page/${page}`, processData, handleErr);
   else
     req.post(
       `${urls.customer_search}/page/${page}`,
       {
         mobile: state.searchStr.trim(),
       },
-      prosessData,
+      processData,
       handleErr
     );
 };
-const handleAdd = () => {
-  editRef.value.open(0);
-};
 // 修改分类
-const handleEdit = (id) => editRef.value.open(id);
+const handleEdit = (id) => {
+  if (!hasRights("/customer/edit")) return showMsg.err("您没有权限编辑此项目");
+  state.edit_id = id;
+}
 // 选择项
+const handleClosed = ()=> state.edit_id = -1;
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除
 const handleDelete = () => {

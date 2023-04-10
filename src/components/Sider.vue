@@ -108,7 +108,7 @@
   </el-scrollbar>
 </template>
 <script setup>
-import { onMounted, reactive, getCurrentInstance } from "vue";
+import { onMounted, reactive, getCurrentInstance, onUnmounted } from "vue";
 import { localGet } from "@/utils";
 import { useRouter } from "vue-router";
 
@@ -151,7 +151,11 @@ onMounted(() => {
   let d = localGet("user_rights");
   d ? process_data(d) : getUserRights((e) => process_data(e));
   state.path = currentRoute._rawValue.path;
+  mittBus.on('updateSideMenu', ()=>getUserRights(process_data));
 });
+onUnmounted(()=>{
+  mittBus.off('updateSideMenu');
+})
 </script>
 <style scoped>
 .aside {

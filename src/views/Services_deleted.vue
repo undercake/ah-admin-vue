@@ -43,11 +43,6 @@
         <el-table-column type="selection" />
         <el-table-column prop="name" label="服务名称" width="200" />
         <el-table-column prop="intro" label="服务简介" width="" />
-        <el-table-column prop="class_id" label="服务类目" width="180">
-          <template #default="scope">
-            {{ state.category[scope.row.class_id] }}
-          </template>
-        </el-table-column>
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <a
@@ -80,16 +75,13 @@
         @current-change="getData"
       />
     </el-card>
-    <EditDialogEmp ref="editRef" @reload="getData(0)" />
   </Layout>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
-import EditDialogEmp from "@/components/EditDialogEmp.vue";
 
-const editRef = ref(false);
 const { urls, showMsg, req } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
@@ -115,34 +107,16 @@ const getData = (page = 0) => {
   state.edit_serv = 0;
   if (page === 0) page = state.currentPage;
   state.loading = true;
-  req.get(urls.services_category, (d) => {
-    console.log(d);
-    state.category = [];
-    d.data.forEach((c) => (state.category[c.id] = c.name));
-  });
   req.get(
     `${urls.services_deleted}/page/${page}`,
     (d) => {
-      console.log(d);
       state.tableData = d.data;
       state.loading = false;
       state.firstLoading = false;
       state.currentPage = d.current_page;
       state.pageSize = d.count_per_page;
       state.total = d.count;
-      state.empty = "没有数据";
-      req.get(urls.services_options, (d) => {
-        const data = d.data;
-        const tmpOpt = [];
-        data.forEach(
-          (d) =>
-            (tmpOpt[d.service_id] = tmpOpt[d.service_id]
-              ? tmpOpt[d.service_id] + 1
-              : 1)
-        );
-        state.opt_count = tmpOpt;
-        console.log(tmpOpt);
-      });
+      state.empty = "没有数据";;
     },
     (d) => {
       console.log(d);

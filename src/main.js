@@ -1,10 +1,9 @@
 /*
- * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
+ * @Author: undercake
  * @Date: 2023-03-03 17:20:58
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-04-09 17:12:32
+ * @LastEditTime: 2023-04-10 17:05:26
  * @FilePath: /ah-admin-vue/src/main.js
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @Description: VUE主配置文件
  */
 import { createApp } from "vue";
 import {
@@ -37,7 +36,6 @@ import {
   ElOption,
   ElScrollbar,
   ElDatePicker,
-  ElText,
 } from "element-plus";
 import "element-plus/theme-chalk/dark/css-vars.css";
 import App from "./App.vue";
@@ -49,196 +47,79 @@ import mitt from "mitt";
 let groups = [];
 
 const BaseUri = "";
-/*
-2  /admin  管理员设置
-3  /admin_list  管理员列表
-43  /admin_pass  修改管理员密码
-44  /admin/edit  编辑管理员
-45  /admin_deleted  回收站
-43 /admin_pass 修改管理员密码
-  admin_list           : BaseUri + "/midas/admin/list",
-  admin_all            : BaseUri + "/midas/admin/all",
-  admin_detail         : BaseUri + "/midas/admin/detail",
-  admin_add            : BaseUri + "/midas/admin/add",
-  admin_alter          : BaseUri + "/midas/admin/alter",
-  admin_delete         : BaseUri + "/midas/admin/delete",
-  admin_deleted        : BaseUri + "/midas/admin/deleted",
-  admin_deep_del       : BaseUri + "/midas/admin/deep_del",
-  admin_pass           : BaseUri + "/midas/admin/pass",
-  admin_rec            : BaseUri + "/midas/admin/rec",
-  group_list           : BaseUri + "/midas/group/list",
-  group_list_all       : BaseUri + "/midas/group/all",
-  group_detail         : BaseUri + "/midas/group/detail",
-  group_add            : BaseUri + "/midas/group/add",
-  group_alter          : BaseUri + "/midas/group/alter",
-  group_delete         : BaseUri + "/midas/group/delete",
-
-23  /employee  员工管理
-24  /employee_list  员工列表
-48 /employee_deleted 回收站
-25  /employee/edit  员工编辑
-37  /employee/add  员工添加
-38  /employee/delete  员工删除
-39  /employee/alter  员工修改
-  employee_list        : BaseUri + "/midas/employee/list",
-  employee_detail      : BaseUri + "/midas/employee/detail",
-  employee_search      : BaseUri + "/midas/employee/search",
-  employee_deep_del    : BaseUri + "/midas/employee/deep_del",
-  employee_deleted     : BaseUri + "/midas/employee/deleted",
-  employee_rec         : BaseUri + "/midas/employee/rec",
-
-26  /services  服务管理
-27  /services_list  服务列表
-28  /services_category  服务类目
-29  /services/edit  服务编辑
-30  /services/add  服务增加
-31  /services/delete  删除服务
-32  /services/alter  修改服务
-33  /services/edit  服务类目添加
-34  /services/category_del  服务类目删除
-35  /services/category_alter  服务类目修改
-36  /services/category_edit  服务类目编辑
-42  /service_comment  服务评价
-50 /services_deleted 回收站
-
-  services_list        : BaseUri + "/midas/services/list",
-  services_detail      : BaseUri + "/midas/services/detail",
-  services_deep_del    : BaseUri + "/midas/services/deep_del",
-  services_deleted     : BaseUri + "/midas/services/deleted",
-  services_rec         : BaseUri + "/midas/services/rec",
-  services_category    : BaseUri + "/midas/services/category",
-  services_options     : BaseUri + "/midas/services/options",
-  services_opt_del     : BaseUri + "/midas/services/opt_del",
-  services_opt_add     : BaseUri + "/midas/services/opt_add",
-  services_opt_edit    : BaseUri + "/midas/services/opt_edit",
-  services_quick_edit  : BaseUri + "/midas/services/quick_edit",
-  services_quick_ch_cat: BaseUri + "/midas/services/cat_quick_edit",
-  services_cat_del     : BaseUri + "/midas/services/cat_del",
-  services_cat_name    : BaseUri + "/midas/services/cat_name",
-
-47 /group 角色设置
-46 /group/edit 角色编辑
-4  /group_list  管理员角色管理
-
-  group_list           : BaseUri + "/midas/group/list",
-  group_list_all       : BaseUri + "/midas/group/all",
-  group_detail         : BaseUri + "/midas/group/detail",
-  group_add            : BaseUri + "/midas/group/add",
-  group_alter          : BaseUri + "/midas/group/alter",
-  group_delete         : BaseUri + "/midas/group/delete",
-  rights_list          : BaseUri + "/midas/group/rights",
-
-51 /customer 客户管理
-52 /customer_list 客户列表
-53 /customer_deleted 回收站
-54 /customer/edit 客户编辑
-55 /customer/add 添加客户
-56 /customer/delete 删除客户
-57 /customer/alt 客户信息修改
-58 /customer_near 即将过期
-
-  customer_list        : BaseUri + "/midas/customer/list",
-  customer_near        : BaseUri + "/midas/customer/near",
-  customer_search      : BaseUri + "/midas/customer/search",
-  customer_detail      : BaseUri + "/midas/customer/detail",
-  customer_add         : BaseUri + "/midas/customer/add",
-  customer_alter       : BaseUri + "/midas/customer/alter",
-  customer_deep_del    : BaseUri + "/midas/customer/deep_del",
-  customer_deleted     : BaseUri + "/midas/customer/deleted",
-  customer_rec         : BaseUri + "/midas/customer/rec",
-
-49 /order 订单管理
-59 49 2 /order/edit 修改派单 0
-61 49 1 /order/recall 撤回派单 0
-67 49 1 /order/renew 重新派工 0
-62 49 1 /order/add 新增派工单 0
-63 49 1 /order/delete 删除派工单 0
-64 49 1 /order/alter 修改派工单 0
-65 49 1 /order_list 派工单列表 1
-66 49 0 /order_deleted 回收站 9
-60 49 1 /order_add 派工 0
-
-*/
 const urls = {
   BaseUri,
-  captcha              : BaseUri + "/midas/cap/get",
-  login                : BaseUri + "/midas/user/login",
-  isLogged             : BaseUri + "/midas/user/logged",
-  logout               : BaseUri + "/midas/user/logout",
-  my_get               : BaseUri + "/midas/my/get",
-  my_set               : BaseUri + "/midas/my/set",
-  my_set_pass          : BaseUri + "/midas/my/set_pass",
-  upload_public        : BaseUri + "/midas/uploader/public",
-  upload_private       : BaseUri + "/midas/uploader/private",
-  getUserSideMenu      : BaseUri + "/midas/user/getusersidemenu",
-  admin_list           : BaseUri + "/midas/admin/list",
-  admin_all            : BaseUri + "/midas/admin/all",
-  admin_detail         : BaseUri + "/midas/admin/detail",
-  admin_add            : BaseUri + "/midas/admin/add",
-  admin_alter          : BaseUri + "/midas/admin/alter",
-  admin_delete         : BaseUri + "/midas/admin/delete",
-  admin_deleted        : BaseUri + "/midas/admin/deleted",
-  admin_deep_del       : BaseUri + "/midas/admin/deep_del",
-  admin_pass           : BaseUri + "/midas/admin/pass",
-  admin_rec            : BaseUri + "/midas/admin/rec",
-  group_list           : BaseUri + "/midas/group/list",
-  group_list_all       : BaseUri + "/midas/group/all",
-  group_detail         : BaseUri + "/midas/group/detail",
-  group_add            : BaseUri + "/midas/group/add",
-  group_alter          : BaseUri + "/midas/group/alter",
-  group_delete         : BaseUri + "/midas/group/delete",
-  rights_list          : BaseUri + "/midas/group/rights",
-  employee_list        : BaseUri + "/midas/employee/list",
-  employee_detail      : BaseUri + "/midas/employee/detail",
-  employee_search      : BaseUri + "/midas/employee/search",
-  employee_add         : BaseUri + "/midas/employee/add",
-  employee_alter       : BaseUri + "/midas/employee/alter",
-  employee_delete      : BaseUri + "/midas/employee/delete",
-  employee_deep_del    : BaseUri + "/midas/employee/deep_del",
-  employee_deleted     : BaseUri + "/midas/employee/deleted",
-  employee_rec         : BaseUri + "/midas/employee/rec",
-  services_list        : BaseUri + "/midas/services/list",
-  services_detail      : BaseUri + "/midas/services/detail",
-  services_add         : BaseUri + "/midas/services/add",
-  services_alter       : BaseUri + "/midas/services/alter",
-  services_delete      : BaseUri + "/midas/services/delete",
-  services_deep_del    : BaseUri + "/midas/services/deep_del",
-  services_deleted     : BaseUri + "/midas/services/deleted",
-  services_rec         : BaseUri + "/midas/services/rec",
-  services_category    : BaseUri + "/midas/services/category",
-  services_options     : BaseUri + "/midas/services/options",
-  services_opt_del     : BaseUri + "/midas/services/opt_del",
-  services_opt_add     : BaseUri + "/midas/services/opt_add",
-  services_opt_edit    : BaseUri + "/midas/services/opt_edit",
-  services_quick_edit  : BaseUri + "/midas/services/quick_edit",
-  services_quick_ch_cat: BaseUri + "/midas/services/cat_quick_edit",
-  services_cat_del     : BaseUri + "/midas/services/cat_del",
-  services_cat_name    : BaseUri + "/midas/services/cat_name",
-  customer_list        : BaseUri + "/midas/customer/list",
-  customer_near        : BaseUri + "/midas/customer/near",
-  customer_search      : BaseUri + "/midas/customer/search",
-  customer_detail      : BaseUri + "/midas/customer/detail",
-  customer_add         : BaseUri + "/midas/customer/add",
-  customer_alter       : BaseUri + "/midas/customer/alter",
-  customer_delete      : BaseUri + "/midas/customer/delete",
-  customer_deep_del    : BaseUri + "/midas/customer/deep_del",
-  customer_deleted     : BaseUri + "/midas/customer/deleted",
-  customer_rec         : BaseUri + "/midas/customer/rec",
-  order_edit           : BaseUri + "/midas/order/edit",
-  order_recall         : BaseUri + "/midas/order/recall",
-  order_renew          : BaseUri + "/midas/order/renew",
-  order_add            : BaseUri + "/midas/order/add",
-  order_delete         : BaseUri + "/midas/order/delete",
-  order_alter          : BaseUri + "/midas/order/alter",
-  // !-------------------------------------------------------
-  // ! customer_addr_del    : BaseUri + "/midas/customer/addr_del",
-  // ! customer_addr_add    : BaseUri + "/midas/customer/addr_add",
-  // ! customer_addr_alter  : BaseUri + "/midas/customer/addr_alter",
-  // ! customer_serv_del    : BaseUri + "/midas/customer/serv_del",
-  // ! customer_serv_add    : BaseUri + "/midas/customer/serv_add",
-  // ! customer_serv_alter  : BaseUri + "/midas/customer/serv_alter",
-  client_quick_blk     : BaseUri + "/midas/customer/quick_black",
-  client_quick_rec_blk : BaseUri + "/midas/customer/quick_rec_black",
+  captcha               : BaseUri + "/midas/cap/get",
+  login                 : BaseUri + "/midas/user/login",
+  isLogged              : BaseUri + "/midas/user/logged",
+  logout                : BaseUri + "/midas/user/logout",
+  my_get                : BaseUri + "/midas/my/get",
+  my_set                : BaseUri + "/midas/my/set",
+  my_set_pass           : BaseUri + "/midas/my/set_pass",
+  upload_public         : BaseUri + "/midas/uploader/public",
+  upload_private        : BaseUri + "/midas/uploader/private",
+  getUserSideMenu       : BaseUri + "/midas/user/getusersidemenu",
+  admin_list            : BaseUri + "/midas/admin/list",
+  admin_all             : BaseUri + "/midas/admin/all",
+  admin_detail          : BaseUri + "/midas/admin/detail",
+  admin_add             : BaseUri + "/midas/admin/add",
+  admin_alter           : BaseUri + "/midas/admin/alter",
+  admin_delete          : BaseUri + "/midas/admin/delete",
+  admin_deleted         : BaseUri + "/midas/admin/deleted",
+  admin_deep_del        : BaseUri + "/midas/admin/deep_del",
+  admin_pass            : BaseUri + "/midas/admin/pass",
+  admin_rec             : BaseUri + "/midas/admin/rec",
+  group_list            : BaseUri + "/midas/group/list",
+  group_list_all        : BaseUri + "/midas/group/all",
+  group_detail          : BaseUri + "/midas/group/detail",
+  group_add             : BaseUri + "/midas/group/add",
+  group_alter           : BaseUri + "/midas/group/alter",
+  group_delete          : BaseUri + "/midas/group/delete",
+  rights_list           : BaseUri + "/midas/group/rights",
+  employee_list         : BaseUri + "/midas/employee/list",
+  employee_detail       : BaseUri + "/midas/employee/detail",
+  employee_search       : BaseUri + "/midas/employee/search",
+  employee_add          : BaseUri + "/midas/employee/add",
+  employee_alter        : BaseUri + "/midas/employee/alter",
+  employee_delete       : BaseUri + "/midas/employee/delete",
+  employee_deep_del     : BaseUri + "/midas/employee/deep_del",
+  employee_deleted      : BaseUri + "/midas/employee/deleted",
+  employee_rec          : BaseUri + "/midas/employee/rec",
+  services_list         : BaseUri + "/midas/services/list",
+  services_detail       : BaseUri + "/midas/services/detail",
+  services_add          : BaseUri + "/midas/services/add",
+  services_alter        : BaseUri + "/midas/services/alter",
+  services_delete       : BaseUri + "/midas/services/delete",
+  services_deep_del     : BaseUri + "/midas/services/deep_del",
+  services_deleted      : BaseUri + "/midas/services/deleted",
+  services_rec          : BaseUri + "/midas/services/rec",
+  services_category     : BaseUri + "/midas/services/category",
+  services_options      : BaseUri + "/midas/services/options",
+  services_opt_del      : BaseUri + "/midas/services/opt_del",
+  services_opt_add      : BaseUri + "/midas/services/opt_add",
+  services_opt_edit     : BaseUri + "/midas/services/opt_edit",
+  services_quick_edit   : BaseUri + "/midas/services/quick_edit",
+  services_quick_ch_cat : BaseUri + "/midas/services/cat_quick_edit",
+  services_cat_del      : BaseUri + "/midas/services/cat_del",
+  services_cat_name     : BaseUri + "/midas/services/cat_name",
+  customer_list         : BaseUri + "/midas/customer/list",
+  customer_near         : BaseUri + "/midas/customer/near",
+  customer_search       : BaseUri + "/midas/customer/search",
+  customer_detail       : BaseUri + "/midas/customer/detail",
+  customer_add          : BaseUri + "/midas/customer/add",
+  customer_alter        : BaseUri + "/midas/customer/alter",
+  customer_delete       : BaseUri + "/midas/customer/delete",
+  customer_deep_del     : BaseUri + "/midas/customer/deep_del",
+  customer_deleted      : BaseUri + "/midas/customer/deleted",
+  customer_rec          : BaseUri + "/midas/customer/rec",
+  order_edit            : BaseUri + "/midas/order/edit",
+  order_recall          : BaseUri + "/midas/order/recall",
+  order_renew           : BaseUri + "/midas/order/renew",
+  order_add             : BaseUri + "/midas/order/add",
+  order_delete          : BaseUri + "/midas/order/delete",
+  order_alter           : BaseUri + "/midas/order/alter",
+  customer_quick_blk    : BaseUri + "/midas/customer/quick_black",
+  customer_quick_rec_blk: BaseUri + "/midas/customer/quick_rec_black",
 };
 
 const showMsg = {
@@ -279,13 +160,16 @@ const handle_http_err = (e, err) => {
 };
 const showNetErr = (e) =>
   ElMessage({ showClose: true, message: e, type: "error" });
+const CancelToken = axios.CancelToken;
 const request = (method, url, succ, err, data = Object.create(null)) => {
-  // console.log(method, data);
-  axios[method](url, data)
+  let cancel = null;
+  axios[method](url, data, {cancelToken: new CancelToken(c=>cancel = c)})
     .then((data) => handle200(succ, err, data))
     .catch((e) => handle_http_err(e, err));
+  return cancel;
 };
-const upload = (url, file, prog, succ, err) =>
+const upload = (url, file, prog, succ, err) => {
+  let cancel;
   axios
     .post(url, createFormData(file), {
       headers: {
@@ -296,10 +180,12 @@ const upload = (url, file, prog, succ, err) =>
           prog(((progressEvent.loaded / progressEvent.total) * 100) | 0);
         }
       },
+      cancelToken: new CancelToken(c=>cancel = c)
     })
     .then((res) => handle200(succ, err, res))
     .catch((e) => handle_http_err(e, err));
-
+  return cancel;
+}
 const createFormData = (f) => {
   const fm = new FormData();
   const content_len = Math.round((f.size * 100) / 1024) / 100;
@@ -383,7 +269,7 @@ const hasRights = (p) => {
 
 const getRouteName = (p) => {
   groups.length < 1 && initRights();
-  let $rtn = "阿惠管理后台";
+  let $rtn = "阿惠家政管理后台";
   for (const k in groups) {
     if (groups[k].path == p) {
       $rtn = groups[k].name;

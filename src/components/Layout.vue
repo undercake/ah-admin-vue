@@ -30,15 +30,17 @@
 import { onMounted, onUnmounted, reactive, getCurrentInstance } from "vue";
 import Header from "./Header.vue";
 import Login from "./Login.vue";
-import { useRouter, createRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import Sider from "./Sider.vue";
 import Error from "./Error.vue";
 import { localSet, localGet } from "../utils";
-import { ElConfigProvider } from 'element-plus'
-import zhCn from'element-plus/lib/locale/lang/zh-cn'
+import { ElConfigProvider } from 'element-plus';
+import zhCn from'element-plus/lib/locale/lang/zh-cn';
+import pathLists from '@/router/paths.js';
 
+const paths = pathLists.map(p => p.path);
+const { mittBus, hasRights } = getCurrentInstance().appContext.config.globalProperties;
 const route = useRouter();
-const { mittBus } = getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
   showErr: false,
   bg: "bg-white",
@@ -63,6 +65,7 @@ const to_log = () => {
 
 // 布局初始化
 onMounted(() => {
+  console.log('layout');
   state.path = route.currentRoute._rawValue.path;
   state.bg = localGet("bg", "");
   if (state.bg == 'bg-dark' && state.bg != '') {
@@ -74,15 +77,36 @@ onMounted(() => {
   mittBus.on('routChangeStart', ()=>{
     state.route_loading = true;
   });
+  mittBus.on('updateSideMenu', ()=>checkHasRight(state.path));
+  checkHasRight(state.path);
 });
 onUnmounted(() => {
   mittBus.off("is_login");
+  mittBus.off("routChangeStart");
+  mittBus.off("updateSideMenu");
 });
 
+const checkHasRight = path=>{
+  path = typeof(path) == 'string' ? path : path.path;
+  if(paths.includes(path))
+    if (hasRights(path)) {
+      state.showErr = false;
+      state.code = 0;
+    } else {
+      state.showErr = true;
+      state.code = 403;
+    }
+  else {
+      state.showErr = true;
+      state.code = 404;
+  }
+}
+
 route.afterEach((to) => {
-  console.log('after', to.fullPath);
   state.route_loading = false;
   mittBus.emit('routeChange', to.fullPath);
+  state.path = to.fullPath;
+  checkHasRight(to);
 })
 </script>
 <style scoped>

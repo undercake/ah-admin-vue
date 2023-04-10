@@ -243,7 +243,7 @@ const getData = (page = 0) => {
   if (page === 0) page = state.currentPage;
   state.loading = true;
   const currentDate = new Date();
-  const prosessData = (d) => {
+  const processData = (d) => {
     state.addr = [];
     state.services = d.services;
     d.addr.forEach((a) => {
@@ -281,14 +281,14 @@ const getData = (page = 0) => {
     state.empty = "加载错误";
   };
   if (state.searchStr.trim() == "")
-    req.get(`${urls.customer_list}/page/${page}`, prosessData, handleErr);
+    req.get(`${urls.customer_list}/page/${page}`, processData, handleErr);
   else
     req.post(
       `${urls.customer_search}/page/${page}`,
       {
         mobile: state.searchStr.trim(),
       },
-      prosessData,
+      processData,
       handleErr
     );
 };
@@ -315,9 +315,9 @@ const handleDeleteOne = (id) => {
 };
 
 const handleBlack = (id) =>
-  req.get(`${urls.client_quick_blk}/id/${id}`, () => getData());
+  req.get(`${urls.customer_quick_blk}/id/${id}`, () => getData());
 const handleRecBlack = (id) =>
-  req.get(`${urls.client_quick_rec_blk}/id/${id}`, () => getData());
+  req.get(`${urls.customer_quick_rec_blk}/id/${id}`, () => getData());
 </script>
 
 <style scoped>

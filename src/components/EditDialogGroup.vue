@@ -3,18 +3,20 @@
     v-if="state.is_edit"
     v-model="state.is_edit"
     :title="state.edit_id == 0 ? '添加角色' : '编辑角色'"
-    width="30%"
+    width="40%"
     center
     :close-on-click-modal="false"
     :show-close="!state.disable_close"
   >
+  
+  <el-skeleton :rows="5" animated v-if="state.load_all" />
     <el-form
       :model="state.ruleForm"
       :rules="state.rules"
       ref="formRef"
       label-width="100px"
       class="good-form"
-      v-loading="state.load_all"
+      v-if="!state.load_all"
     >
       <el-form-item label="角色名称" prop="name">
         <el-input type="text" v-model="state.ruleForm.name"></el-input>
@@ -25,7 +27,7 @@
       <el-card
         class="box-card"
         v-for="item in state.right_list"
-        :key="item.idi"
+        :key="item.id"
       >
         <template #header>
           <div class="card-header">
@@ -39,7 +41,7 @@
         <el-row :gutter="20">
           <el-col :span="12" v-for="o in item.children" :key="o.id">
             <span>{{ o.name }}</span>
-            <el-tag class="mx-1" effect="light" round v-if="o.type !== 0">
+            <el-tag class="mx-1" effect="plain" :type="o.type == 2 ? 'success' : ''" round v-if="o.type !== 0">
               {{ ["API", "编辑"][o.type - 1] }}
             </el-tag>
             <span class="right">
@@ -149,14 +151,14 @@ const get_rights = () => {
         const { id, parent, type, path, name } = r;
         console.log({ id, parent, type, path, name });
         if (parent !== 0) {
+          if (data[parent] === undefined) d.data.forEach(a => a.id == parent && (data[parent] = {...a, children:[]}));
+          if (data[parent]?.children === undefined) data[parent] = {...data[parent], children:[]};
           data[parent].children.push({ id, parent, type, path, name });
         }
       });
       state.right_list = data.filter((e) => e);
       state.group_load = false;
-      console.log(state.right_list);
     },
-    console.log
   );
 };
 
