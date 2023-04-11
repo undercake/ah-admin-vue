@@ -27,6 +27,13 @@
     <el-form-item label="拼音码" prop="pym">
       <el-input type="text" v-model="state.ruleForm.pym" />
     </el-form-item>
+    <el-form-item label="客户类型" prop="type">
+      <el-select-v2
+        v-model="state.ruleForm.type"
+        :options="client_type"
+        placeholder="Please select"
+      />
+    </el-form-item>
     <el-form-item label="拼音" prop="pinyin">
       <el-input type="text" v-model="state.ruleForm.pinyin" />
     </el-form-item>
@@ -125,7 +132,7 @@ const { urls, req, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
 
 const emit = defineEmits(["loadErr", "disable"]);
-const props = defineProps(["id", 'mobile']);
+const props = defineProps(["id", "mobile"]);
 const id = props["id"];
 const formRef = ref();
 const rules = {
@@ -143,6 +150,11 @@ const options = [
   { value: 5, label: "季卡" },
   { value: 6, label: "月卡" },
   { value: 7, label: "半月卡" },
+];
+const client_type = [
+  { value: 0, label: "普通客户" },
+  { value: 1, label: "VIP" },
+  { value: 2, label: "重要领导" },
 ];
 const state = reactive({
   emp_load: false,
@@ -171,6 +183,7 @@ const state = reactive({
   address_del: new Set(),
   ruleForm: {
     name: "",
+    type: 0,
     mobile: "",
     black: 0,
     pym: "",
@@ -206,8 +219,8 @@ const name_change = () => {
 // 获取初始信息
 const get_emp_info = () => {
   if (id === undefined || (id !== undefined && id < 1)) {
-    const mobile = props['mobile'];
-    if (typeof(mobile) == 'string' && mobile.trim() !== '')
+    const mobile = props["mobile"];
+    if (typeof mobile == "string" && mobile.trim() !== "")
       state.ruleForm.mobile = mobile;
     return;
   }
@@ -232,62 +245,58 @@ const get_emp_info = () => {
 };
 
 const trimArr = (d) => {
-  d.forEach((c, i) => {
-    for (const k in c) {
-      if (typeof c[k] == "string") d[i][k] = c[k].trim();
-    }
+  return d.map(c => {
+    for (const k in c)
+      if (typeof c[k] == "string") c[k] = c[k].trim();
+
     if (c?.time) {
-      d[i]["start_time"] =
-        c.time[0] && c.time[0] instanceof Date
-          ? `${c.time[0].getFullYear()}-${
-              c.time[0].getMonth() + 1
-            }-${c.time[0].getDate()}`
-          : "";
-      d[i]["end_time"] =
-        c.time[1] && c.time[1] instanceof Date
-          ? `${c.time[1].getFullYear()}-${
-              c.time[1].getMonth() + 1
-            }-${c.time[1].getDate()}`
-          : "";
+      ["start_time", "end_time"].forEach((t, j) => {
+        c[t] =
+          c.time[j] && c.time[j] instanceof Date && !isNaN(c.time[j].getTime())
+            ? `${c.time[j].getFullYear()}-${c.time[j].getMonth() + 1}-${c.time[j].getDate()}`
+            : '0000-00-00';
+      });
     }
+    return c;
   });
-  return d;
 };
 
-const getOriginData = ()=>{
+const getOriginData = () => {
   const {
-      name,
-      mobile,
-      black,
-      pym,
-      pinyin,
-      remark,
-      total_money,
-      total_count,
-    } = state.ruleForm;
-    let { contract, address, contract_del, address_del } = state;
-    contract = trimArr(contract);
-    address = trimArr(address);
-    return {
-        id,
-        name,
-        mobile: mobile.replaceAll("，", ","),
-        black: black === true ? 1 : 0,
-        pym,
-        pinyin,
-        remark,
-        total_money,
-        total_count,
-        contract_del: Array.from(contract_del),
-        address_del: Array.from(address_del),
-        contract: contract.filter(
-          (c) => c.type !== 0 || c.contract_code.trim() !== ""
-        ),
-        address: address.filter((a) => a.address.trim() !== ""),
-      }
+    name,
+    mobile,
+    black,
+    pym,
+    pinyin,
+    remark,
+    total_money,
+    total_count,
+    type,
+  } = state.ruleForm;
+  let { contract, address, contract_del, address_del } = state;
+  contract = trimArr(contract);
+  address = trimArr(address);
+  return {
+    id,
+    name,
+    mobile: mobile.replaceAll("，", ","),
+    black: black === true ? 1 : 0,
+    pym,
+    pinyin,
+    remark,
+    total_money,
+    total_count,
+    type,
+    contract_del: Array.from(contract_del),
+    address_del: Array.from(address_del),
+    contract: contract.filter(
+      (c) => c.type !== 0 || c.contract_code.trim() !== ""
+    ),
+    address: address.filter((a) => a.address.trim() !== ""),
+  };
 };
 
-const validateData = (fun)=>{
+const validateData = (fun) => {
   formRef.value.validate((valid, err) => {
     if (!valid) {
       for (const k in err) {
@@ -298,9 +307,9 @@ const validateData = (fun)=>{
     }
     if (fun instanceof Function) fun();
   });
-}
+};
 const submit = async (fun) => {
-  validateData(()=>{
+  validateData(() => {
     const url = id == 0 ? urls.customer_add : urls.customer_alter;
     const method = id == 0 ? "post" : "put";
     emit("disable", true);
@@ -320,7 +329,7 @@ const submit = async (fun) => {
         emit("disable", false);
       }
     );
-  })
+  });
 };
 const example = {
   contract: {

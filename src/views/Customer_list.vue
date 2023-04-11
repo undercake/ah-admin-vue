@@ -66,6 +66,15 @@
             >
               已拉黑
             </el-tag>
+            <el-tag
+              v-if="scope.row.type > 0"
+              type="warning"
+              class="mx-1"
+              effect="plain"
+              round
+            >
+              {{ ['VIP', '重要领导'][scope.row.type - 1] }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="mobile" label="手机号" width="130" />
@@ -143,10 +152,7 @@
               </el-text>
               <el-text
                 truncated
-                style="
-                  margin-left: 0.5rem;
-                  background: var(--el-color-warning-light-7);
-                "
+                style="margin-left: 0.5rem;background: var(--el-color-warning-light-7);"
               >
                 {{ item.remark }}
               </el-text>
@@ -229,9 +235,6 @@ const state = reactive({
   total: 0, // 总条数
   currentPage: 1, // 当前页
   pageSize: 10, // 分页大小
-  type: "add", // 操作类型
-  level: 1,
-  parent_id: 0,
   empty: "没有数据",
 });
 onMounted(() => {

@@ -12,11 +12,7 @@
             @keydown.enter="getData"
             @input="on11Get"
           />
-          <el-button
-            type="primary"
-            @click="getData"
-            :loading="state.loading"
-          >
+          <el-button type="primary" @click="getData" :loading="state.loading">
             <i class="fa fa-solid fa-magnifying-glass" />
             搜索
           </el-button>
@@ -28,6 +24,15 @@
           <div v-for="(c, i) in state.client_data" :key="i">
             <el-radio :label="c.id" size="large" border>
               <el-text>
+                <el-tag
+                  v-if="c.type > 0"
+                  type="warning"
+                  class="mx-1"
+                  effect="plain"
+                  round
+                >
+                  {{ ["VIP", "重要领导"][c.type - 1] }}
+                </el-tag>
                 姓名：{{ c.name }} &nbsp;&nbsp; 电话：{{
                   c.mobile
                 }}
@@ -35,26 +40,37 @@
                 剩余次数：{{ c.total_count }} &nbsp;&nbsp; 备注：{{ c.remark }}
               </el-text>
             </el-radio>
-            <el-text @click="()=>state.edit_id = c.id" class="edit" style="margin-left:-15px">
+            <el-text
+              @click="() => (state.edit_id = c.id)"
+              class="edit"
+              style="margin-left: -15px"
+            >
               编辑
             </el-text>
             <el-popconfirm
               title="确定删除吗？"
               confirmButtonText="确定"
               cancelButtonText="取消"
-              @confirm="handleDelete('client' ,c.id)"
+              @confirm="handleDelete('client', c.id)"
             >
               <template #reference>
-                <el-text class="edit" style="margin-left:10px">删除</el-text>
+                <el-text class="edit" style="margin-left: 10px">删除</el-text>
               </template>
             </el-popconfirm>
           </div>
         </el-radio-group>
       </div>
-      <el-row v-if="state.location_data.length > 0 && !state.loading" :gutter="20">
+      <el-row
+        v-if="state.location_data.length > 0 && !state.loading"
+        :gutter="20"
+      >
         <el-col :span="2">
           选择地址：<br />
-          <el-text @click="()=>state.edit_id = state.client_id" class="edit" v-if="state.client_id > 0">
+          <el-text
+            @click="() => (state.edit_id = state.client_id)"
+            class="edit"
+            v-if="state.client_id > 0"
+          >
             编辑
           </el-text>
         </el-col>
@@ -78,7 +94,11 @@
       <el-row v-if="state.serv_data.length > 0 && !state.loading" :gutter="20">
         <el-col :span="2">
           选择服务项目：<br />
-          <el-text @click="()=>state.edit_id = state.client_id" class="edit" v-if="state.client_id > 0">
+          <el-text
+            @click="() => (state.edit_id = state.client_id)"
+            class="edit"
+            v-if="state.client_id > 0"
+          >
             编辑
           </el-text>
         </el-col>
@@ -91,21 +111,19 @@
                 border
                 v-if="c.customer_id == state.client_id"
               >
-                <el-tag
-                  :type="serv_type_color[c.type]"
-                  class="mx-1"
-                  effect="dark"
-                >
-                  {{ serv_types[c.type] }}
-                </el-tag>
-                <el-text truncated style="margin-left: 0.5rem">
+                <el-text>
+                  <el-tag
+                    :type="serv_type_color[c.type]"
+                    class="mx-1"
+                    effect="dark"
+                  >
+                    {{ serv_types[c.type] }}
+                  </el-tag>
+                </el-text>
+                <el-text style="margin-left: 0.5rem">
                   {{ c.contract_code }}
                 </el-text>
-                <el-text
-                  truncated
-                  style="margin-left: 0.5rem"
-                  v-if="c.type != 1"
-                >
+                <el-text style="margin-left: 0.5rem" v-if="c.type != 1">
                   <el-tag
                     :type="
                       c.expired ? 'danger' : c.near ? 'warning' : 'success'
@@ -123,37 +141,120 @@
           </el-radio-group>
         </el-col>
       </el-row>
-      <div style="width:35rem;">
+      <div style="width: 35rem">
         <edit-core-customer
           v-if="state.edit_now_id > -1"
           :id="state.edit_now_id"
           ref="formRef"
           :mobile="state.searchStr"
-          @loadErr="()=>state.edit_now_id = -1"
+          @loadErr="() => (state.edit_now_id = -1)"
           @disable="(e) => (state.disable_close = e)"
         />
       </div>
     </el-card>
+    <el-card
+      v-if="
+        (state.empty && state.edit_id == 0) ||
+        (![undefined, 0].includes(state.client_id) && ![undefined, 0].includes(state.local_id) && ![undefined, 0].includes(state.serv_id))
+      "
+    >
+      <el-row>
+        <el-col :span="2">
+          选择服务类目
+          <el-text @click="change">
+
+          </el-text>
+        </el-col>
+        <el-col :span="22">
+          <el-select-v2
+            v-model="state.category_id"
+            :options="state.categories"
+            :loading="categories_loading"
+            placeholder="请选择服务类目"
+            @focus="loadAll()"
+            @change="category_change"
+            allow-create
+            clearable
+          />
+          <el-select-v2
+            v-model="state.service_id"
+            :options="state.services"
+            :loading="services_loading"
+            placeholder="请选择服务"
+            @focus="loadAll()"
+            @change="services_change"
+            allow-create
+            clearable
+          />
+          <el-select-v2
+            v-model="state.option_id"
+            :options="state.options"
+            :loading="options_loading"
+            placeholder="请选择服务选项"
+            @focus="loadAll()"
+            @change="getPrice"
+            allow-create
+            clearable
+          />
+          <el-text v-if="state.price != 0 && state.option_id != 0 && state.option_id !== undefined" style="margin-left:1rem">
+            {{ state.price }} 元
+          </el-text>
+        </el-col>
+      </el-row>
+    </el-card>
     <edit-dialog-customer
       v-if="state.edit_id > -1"
       :id="state.edit_id"
-      @closed="()=>state.edit_id = -1"
+      @closed="() => (state.edit_id = -1)"
       @reload="getData(0)"
     />
   </layout>
 </template>
-<script setup>
+<script lang="ts">
 import { onMounted, reactive, getCurrentInstance, ref } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditCoreCustomer from "@/components/EditCoreCustomer.vue";
 import EditDialogCustomer from "@/components/EditDialogCustomer.vue";
+import type {
+  customer_dataset,
+  customer_list,
+  customer_addr,
+  customer_services,
+  service_category,
+  service_dataset,
+  req_service_category,
+  req_service_option,
+  service_option,
+  service
+} from "../utils/type.d.ts";
 
-const { urls, showMsg, req } =
-  getCurrentInstance().appContext.config.globalProperties;
-
-const formRef = ref();
-
-const serv_types = [
+type EditCoreCustomerType = InstanceType<typeof EditCoreCustomer>;
+interface Order_add_data {
+  disable_close: boolean,
+  edit_id: number,
+  edit_now_id: number,
+  loading: boolean,
+  empty: boolean,
+  searchStr: string,
+  client_id: number,
+  local_id: number,
+  serv_id: number,
+  category_id:number|string|undefined,
+  service_id:number|string|undefined,
+  option_id:number|string|undefined,
+  categories: Opts[],
+  services: Opts[],
+  options: Opts[],
+  client_data: customer_list[],
+  location_data: customer_addr[],
+  serv_data: customer_services[],
+  price:number|string
+}
+interface Opts {
+  value: number|string,
+  label: number|string
+}
+const serv_types: string[] = [
   "暂无",
   "钟点",
   "包周",
@@ -164,7 +265,7 @@ const serv_types = [
   "半月卡",
 ];
 
-const serv_type_color = [
+const serv_type_color: string[] = [
   "info",
   "info",
   "",
@@ -174,20 +275,45 @@ const serv_type_color = [
   "success",
   "",
 ];
+let categories_loaded: boolean = false;
+let services_loaded: boolean = false;
+let options_loaded: boolean = false;
+let services:service[] = [];
+let option:service_option[] = [];
+</script>
+<script setup lang="ts">
+const { urls, showMsg, req } =
+  getCurrentInstance()?.appContext.config.globalProperties;
 
-const state = reactive({
-  disable_close:false,
-  edit_id : -1,
-  edit_now_id:-1,
-  loading: false,
-  empty: false,
-  searchStr: "",
-  client_id: 0,
-  local_id: 0,
-  serv_id: 0,
-  client_data: [],
+const handleDelete = (e, a) => console.log(e, a);
+const handleEdit = (e, a) => console.log(e, a);
+const formRef = ref<EditCoreCustomerType | null>(null);
+
+let categories_loading = ref<boolean>(false)
+let services_loading = ref<boolean>(false)
+let options_loading = ref<boolean>(false)
+
+
+const state = reactive<Order_add_data>({
+  disable_close: false,
+  edit_id      : -1,
+  edit_now_id  : -1,
+  loading      : false,
+  empty        : false,
+  searchStr    : "",
+  client_id    : undefined,
+  local_id     : undefined,
+  serv_id      : undefined,
+  category_id  : '',
+  service_id   : '',
+  option_id    : '',
+  client_data  : [],
   location_data: [],
-  serv_data: [],
+  serv_data    : [],
+  categories   : [],
+  services     : [],
+  options      : [],
+  price        : 0
 });
 
 const addr_change = () => {
@@ -195,32 +321,43 @@ const addr_change = () => {
   state.serv_id = 0;
 };
 
-const handleDelete = (e,a) =>console.log(e,a);
-const handleEdit = (e,a) =>console.log(e,a);
+const category_change = ()=>{
+  state.service_id = undefined;
+  state.option_id = undefined;
+  const tmpOpt:Opts[] = [];
+  services.forEach(a=>a.class_id == state.category_id && tmpOpt.push({label:'', value:''}))
+  state.categories = tmpOpt;
+}
+const services_change = ()=>{
+  state.option_id = undefined;
+  const tmpOpt:Opts[] = [];
+  option.forEach(a=>a.service_id == state.serv_id && tmpOpt.push({label:'', value:''}))
+  state.options = tmpOpt;
+}
 
-const on11Get = v => v.length >= 11 && getData();
-let cancel = false;
+const on11Get = (v: string) => v.length >= 11 && getData();
+let cancel: false | Function = false;
 const getData = () => {
+  const mobile = state.searchStr.trim();
   state.edit_id = -1;
   state.edit_now_id = -1;
-  state.loading = true;
   const currentDate = new Date();
+  state.serv_data = [];
+  state.location_data = [];
+  state.client_data = [];
   if (cancel) cancel();
+  if (mobile == "") return;
+  state.loading = true;
   cancel = req.post(
     `${urls.customer_search}/page/1`,
-    {
-      mobile: state.searchStr.trim(),
-    },
-    (d) => {
+    { mobile },
+    (d: customer_dataset) => {
       state.loading = false;
       if (d.data.length == 0) {
         state.edit_now_id = 0;
-        state.serv_data = [];
-        state.location_data = [];
-        state.client_data = [];
         return;
       }
-        state.empty = false;
+      state.empty = false;
       state.client_data = d.data;
       state.location_data = d.addr;
       console.log(state.location_data);
@@ -229,13 +366,15 @@ const getData = () => {
       serv_data.forEach((e, i) => {
         const end_date = new Date(e.end_time);
         const expired = end_date < currentDate;
-        const near = expired ? false : end_date - currentDate < 2678400000;
+        const near = expired
+          ? false
+          : end_date.getTime() - currentDate.getTime() < 2678400000;
         serv_data[i] = { ...e, expired, near };
       });
       state.serv_data = serv_data;
-      state.client_id = 0;
-      state.local_id = 0;
-      state.serv_id = 0;
+      state.client_id = undefined;
+      state.local_id = undefined;
+      state.serv_id = undefined;
     },
     (d) => {
       state.loading = false;
@@ -243,11 +382,57 @@ const getData = () => {
   );
 };
 
-const handleSubmit = ()=>{};
+const getPrice = () => {
+  for (const item of option) {
+    if (item.id == state.option_id) {
+      state.price = item.price;
+      break;
+    }
+  }
+}
 
-// onMounted(() => {
-//   // getData();
-// });
+const loadAll = () => {
+  changeLoading(true);
+  loadCore(false, categories_loaded, 'services_category');
+  loadCore(false, services_loaded, 'services_list');
+  loadCore(false, options_loaded, 'services_options');
+}
+const forceLoadAll = () => {
+  changeLoading(true);
+  ['services_category', 'services_list', 'services_options'].forEach(a => loadCore(true, true, a))
+}
+const service_func = {
+  services_list(d:service_dataset) {
+    // state.services = d.data.map((a):Opts =>{return {label: a.name, value: a.id}});
+    services = d.data;
+    services_loaded = true;
+  },
+  services_category(d:req_service_category) {
+    state.categories = d.data.map((a):Opts =>{return {label: a.name, value: a.id}});
+    categories_loaded = true;
+  },
+  services_options(d:req_service_option) {
+    // state.options = d.data.map((a):Opts =>{return {label: a.name, value: a.id}});
+    options_loaded = true;
+    option = d.data;
+  }
+}
+const changeLoading  = (opt:boolean) => {
+    categories_loading = opt;
+    services_loading = opt;
+    options_loading = opt;
+}
+const loadCore = (force:boolean, itemLoaded:boolean, urlKey:string) => {
+  if (force || !itemLoaded) {
+    changeLoading(true);
+    req.get(urls[urlKey], (d)=>{
+      service_func[urlKey](d);
+      changeLoading(false);
+    }, ()=>changeLoading(false));
+  } else changeLoading(false)
+}
+
+const handleSubmit = () => {};
 </script>
 
 <style scoped>
@@ -280,6 +465,9 @@ const handleSubmit = ()=>{};
 <style>
 .addr-selector .el-radio-group > div {
   width: 100%;
+}
+.addr-selector > .el-radio-group {
+  display: block;
 }
 .el-radio-button {
   position: static;

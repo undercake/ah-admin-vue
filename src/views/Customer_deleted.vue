@@ -18,7 +18,7 @@
             title="确定删除吗？"
             confirmButtonText="确定"
             cancelButtonText="取消"
-            @confirm="handleDeleteOne(0)"
+            @confirm="handleDelete(0)"
           >
             <template #reference>
               <el-button type="danger">
@@ -75,7 +75,7 @@
               title="确定删除吗？"
               confirmButtonText="确定"
               cancelButtonText="取消"
-              @confirm="handleDeleteOne(scope.row.id)"
+              @confirm="handleDelete(scope.row.id)"
             >
               <template #reference>
                 <a style="cursor: pointer">删除</a>
@@ -101,9 +101,8 @@
 <script setup>
 import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
-import EditDialogEmp from "@/components/EditDialogEmp.vue";
+import { ElMessageBox } from "element-plus";
 
-const editRef = ref(false);
 const { urls, showMsg, req } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
@@ -147,16 +146,17 @@ const getData = (page = 0) => {
 const handleRec = (id = 0) => {
   const ids = state.multipleSelection.map((d) => d.id);
   const data = id === 0 ? { ids } : { id };
-  req.post(urls.employee_rec, data, () => getData());
+  req.post(urls.customer_rec, data, () => getData());
 };
 
 const deep_delete = (id = 0) => {
   if (id === 0)
-    req.post(urls.employee_deep_del, { ids: state.multipleSelection }, () => {
+    req.post(urls.customer_deep_del, { ids: state.multipleSelection }, () => {
       showMsg.succ("成功删除！");
       getData();
     });
-  req.del(urls.employee_deep_del + "/id/" + id, () => {
+  else
+  req.del(urls.customer_deep_del + "/id/" + id, () => {
     showMsg.succ("成功删除！");
     getData();
   });
@@ -167,11 +167,11 @@ const handleSelectionChange = (val) => {
 };
 
 // // 单个删除
-const handleDeleteOne = (id) => {
+const handleDelete = (id) => {
   console.log(id);
   if (id == 0 && state.multipleSelection.length < 1)
     return showMsg.warn("您没有选择数据！");
-  ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
+    ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",

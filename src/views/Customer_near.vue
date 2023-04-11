@@ -203,7 +203,7 @@ import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogCustomer from "@/components/EditDialogCustomer.vue";
 
-const { urls, showMsg, req } =
+const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
   edit_id: -1,
@@ -273,6 +273,11 @@ const handleClosed = () => state.edit_id = -1;
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除
+// 修改分类
+const handleEdit = (id) => {
+  if (!hasRights("/customer/edit")) return showMsg.err("您没有权限编辑此项目");
+  state.edit_id = id;
+};
 const handleDelete = () => {
   console.log(state.multipleSelection.length);
   if (state.multipleSelection.length < 1)

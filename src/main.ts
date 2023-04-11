@@ -1,8 +1,8 @@
 /*
  * @Author: undercake
  * @Date: 2023-03-03 17:20:58
- * @LastEditTime: 2023-04-10 17:05:26
- * @FilePath: /ah-admin-vue/src/main.js
+ * @LastEditTime: 2023-04-11 13:06:48
+ * @FilePath: /ah-admin-vue/src/main.ts
  * @Description: VUE主配置文件
  */
 import { createApp } from "vue";
@@ -39,15 +39,20 @@ import {
 } from "element-plus";
 import "element-plus/theme-chalk/dark/css-vars.css";
 import App from "./App.vue";
-import router from "@/router";
+import router from "./router";
 import axios from "axios";
-import { localSet, localGet } from "@/utils";
+import { localSet, localGet } from "./utils";
 import mitt from "mitt";
+import type { url, rights, right } from "./utils/type.d.ts";
 
-let groups = [];
+interface group{
+  path: string,
+  name: string
+}
+let groups:group[] = [];
 
-const BaseUri = "";
-const urls = {
+const BaseUri: string = "";
+const urls: url = {
   BaseUri,
   captcha               : BaseUri + "/midas/cap/get",
   login                 : BaseUri + "/midas/user/login",
@@ -123,20 +128,20 @@ const urls = {
 };
 
 const showMsg = {
-  info(msg) {
+  info(msg: string) {
     ElMessage({ showClose: true, message: msg });
   },
-  warn(msg) {
+  warn(msg: string) {
     ElMessage({ showClose: true, message: msg, type: "warning" });
   },
-  succ(msg) {
+  succ(msg: string) {
     ElMessage({ showClose: true, message: msg, type: "success" });
   },
-  err(msg) {
+  err(msg: string) {
     ElMessage({ showClose: true, message: msg, type: "error" });
   },
 };
-const mittBus = new mitt();
+const mittBus = new (mitt as any)();
 const handle200 = (succ, err, data) => {
   let d;
   if (data?.code !== undefined) d = data;
@@ -161,14 +166,28 @@ const handle_http_err = (e, err) => {
 const showNetErr = (e) =>
   ElMessage({ showClose: true, message: e, type: "error" });
 const CancelToken = axios.CancelToken;
-const request = (method, url, succ, err, data = Object.create(null)) => {
-  let cancel = null;
-  axios[method](url, data, {cancelToken: new CancelToken(c=>cancel = c)})
+const request = (
+  method: string,
+  url: string,
+  succ: Function,
+  err: Function,
+  data = Object.create(null)
+) => {
+  let cancel: Function | null = null;
+  axios[method](url, data, {
+    cancelToken: new CancelToken((c) => (cancel = c)),
+  })
     .then((data) => handle200(succ, err, data))
     .catch((e) => handle_http_err(e, err));
   return cancel;
 };
-const upload = (url, file, prog, succ, err) => {
+const upload = (
+  url: string,
+  file: File,
+  prog: (p: number | string) => {},
+  succ: Function,
+  err: Function
+) => {
   let cancel;
   axios
     .post(url, createFormData(file), {
@@ -180,50 +199,50 @@ const upload = (url, file, prog, succ, err) => {
           prog(((progressEvent.loaded / progressEvent.total) * 100) | 0);
         }
       },
-      cancelToken: new CancelToken(c=>cancel = c)
+      cancelToken: new CancelToken((c) => (cancel = c)),
     })
     .then((res) => handle200(succ, err, res))
     .catch((e) => handle_http_err(e, err));
   return cancel;
-}
-const createFormData = (f) => {
+};
+const createFormData = (f: File) => {
   const fm = new FormData();
   const content_len = Math.round((f.size * 100) / 1024) / 100;
-  fm.append("Content-Length", content_len);
+  fm.append("Content-Length", content_len + "");
   fm.append("file", f);
   return fm;
 };
 
 const req = {
-  get($url, $fb, $err = () => {}) {
+  get($url: string, $fb: Function, $err:Function = () => {}) {
     request("get", $url, $fb, $err);
   },
-  post($url, data, $fb, $err = () => {}) {
+  post($url: string, data, $fb, $err:Function = () => {}) {
     request("post", $url, $fb, $err, data);
   },
-  put($url, $data, $fb, $err = () => {}) {
+  put($url: string, $data, $fb, $err:Function = () => {}) {
     request("put", $url, $fb, $err, $data);
   },
-  del($url, $fb = () => {}, $err = () => {}) {
+  del($url: string, $fb = () => {}, $err:Function = () => {}) {
     request("delete", $url, $fb, $err);
   },
   upload,
 };
-let timer = 0;
-let gur_arr = [];
-const getUserRights = (fun = () => {}) => {
+let timer:number|NodeJS.Timeout = 0;
+let gur_arr: Array<Function> = [];
+const getUserRights = (fun: Function = () => {}) => {
   gur_arr.push(fun);
   console.log(gur_arr, timer);
   timer === 0 &&
     ((timer = setTimeout(() =>
       req.get(
         urls.getUserSideMenu,
-        (data) => {
-          let user_rights = [];
-          const _rights = [];
+        (data: rights) => {
+          let user_rights: right[] = [];
+          const _rights: right[] = [];
           data.rights.forEach((r) => (_rights[r.id] = { ...r }));
           _rights.forEach(
-            (r) => r.parent == 0 && (user_rights[r.id] = { ...r, children: [] })
+            (r) => r.parent == 0 && (user_rights[r.id] = { ...r })
           );
           _rights.forEach(
             (r) =>
@@ -231,11 +250,9 @@ const getUserRights = (fun = () => {}) => {
           );
           for (let n = 0; n < user_rights.length; n++) {
             user_rights[n] &&
-              user_rights[n].children.sort(
-                (a, b) => parseInt(a.sort) - parseInt(b.sort)
-              );
+              user_rights[n].children.sort((a, b) => a.sort - b.sort);
           }
-          user_rights.sort((a, b) => parseInt(a.sort) - parseInt(b.sort));
+          user_rights.sort((a, b) => a.sort - b.sort);
           localSet("user_rights", user_rights);
           localSet("all_rights", data.rights);
           gur_arr.forEach((f) => f(user_rights));
@@ -244,7 +261,7 @@ const getUserRights = (fun = () => {}) => {
           gur_arr = [];
           initRights(1);
         },
-        (e) => {
+        (e: any) => {
           console.log(e, timer);
           clearTimeout(timer);
           timer = 0;
@@ -255,7 +272,7 @@ const getUserRights = (fun = () => {}) => {
     1000);
 };
 
-const hasRights = (p) => {
+const hasRights = (p: string) => {
   groups.length < 1 && initRights();
   let $rtn = false;
   for (const k in groups) {
@@ -267,7 +284,7 @@ const hasRights = (p) => {
   return $rtn;
 };
 
-const getRouteName = (p) => {
+const getRouteName = (p: string) => {
   groups.length < 1 && initRights();
   let $rtn = "阿惠家政管理后台";
   for (const k in groups) {
@@ -307,8 +324,6 @@ app.config.globalProperties.req = req;
 app.config.globalProperties.mittBus = mittBus;
 app.config.globalProperties.hasRights = hasRights;
 app.config.globalProperties.getRouteName = getRouteName;
-app.config.globalProperties.goTop = () =>
-  (document.querySelector(".main").scrollTop = 0);
 
 app.use(router); // 引用路由实例
 app
