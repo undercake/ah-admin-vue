@@ -1,7 +1,7 @@
 /*
  * @Author: undercake
  * @Date: 2023-03-03 17:20:58
- * @LastEditTime: 2023-04-11 13:06:48
+ * @LastEditTime: 2023-04-12 17:20:47
  * @FilePath: /ah-admin-vue/src/main.ts
  * @Description: VUE主配置文件
  */
@@ -123,6 +123,8 @@ const urls: url = {
   order_add             : BaseUri + "/midas/order/add",
   order_delete          : BaseUri + "/midas/order/delete",
   order_alter           : BaseUri + "/midas/order/alter",
+  order_get_remain      : BaseUri + "/midas/order/get_remain",
+  order_get_emp         : BaseUri + "/midas/order/get_emp",
   customer_quick_blk    : BaseUri + "/midas/customer/quick_black",
   customer_quick_rec_blk: BaseUri + "/midas/customer/quick_rec_black",
 };
@@ -228,7 +230,7 @@ const req = {
   },
   upload,
 };
-let timer:number|NodeJS.Timeout = 0;
+let timer:number = 0;
 let gur_arr: Array<Function> = [];
 const getUserRights = (fun: Function = () => {}) => {
   gur_arr.push(fun);

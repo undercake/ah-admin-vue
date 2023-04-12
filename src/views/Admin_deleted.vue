@@ -144,11 +144,11 @@ const handleRec = () => {
 
 const deep_delete = (id = 0) => {
   if (id === 0)
-    req.post(urls.admin_deep_del, { ids: state.multipleSelection }, () => {
+    req.post(urls.admin_deep_del, { ids: state.multipleSelection.map(a=>a.id) }, () => {
       showMsg.succ("成功删除！");
       getData();
     });
-  req.del(urls.admin_deep_del + "/id/" + id, () => {
+  else req.del(urls.admin_deep_del + "/id/" + id, () => {
     showMsg.succ("成功删除！");
     getData();
   });

@@ -1,7 +1,7 @@
 /*
  * @Author: Undercake
  * @Date: 2023-04-11 10:39:10
- * @LastEditTime: 2023-04-11 13:19:13
+ * @LastEditTime: 2023-04-12 15:35:25
  * @FilePath: /ah-admin-vue/src/utils/type.d.ts
  * @Description:
  */
@@ -121,6 +121,10 @@ interface service {
   status: 0 | 1;
 }
 
+interface remain extends req_data {
+  data: number|string
+}
+
 interface req_service_category extends req_data {
   data: service_category[];
 }
@@ -149,4 +153,5 @@ export {
   service_dataset,
   req_service_category,
   req_service_option,
+  remain
 };

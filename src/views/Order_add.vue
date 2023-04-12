@@ -143,7 +143,7 @@
       </el-row>
       <div style="width: 35rem">
         <edit-core-customer
-          v-if="state.edit_now_id > -1"
+          v-if="state.edit_now_id == 0"
           :id="state.edit_now_id"
           ref="formRef"
           :mobile="state.searchStr"
@@ -154,18 +154,21 @@
     </el-card>
     <el-card
       v-if="
-        (state.empty && state.edit_id == 0) ||
-        (![undefined, 0].includes(state.client_id) && ![undefined, 0].includes(state.local_id) && ![undefined, 0].includes(state.serv_id))
+        (state.empty && state.edit_now_id == 0) ||
+        (![undefined, 0].includes(state.client_id) &&
+          ![undefined, 0].includes(state.local_id) &&
+          ![undefined, 0].includes(state.serv_id))
       "
     >
-      <el-row>
-        <el-col :span="2">
-          选择服务类目
-          <el-text @click="change">
-
-          </el-text>
-        </el-col>
-        <el-col :span="22">
+      <el-form
+        :model="state.ruleForm"
+        :rules="rules"
+        ref="formRef"
+        label-width="100px"
+        class="good-form"
+        v-if="!state.load_all"
+      >
+        <el-form-item label="选择服务类目" prop="">
           <el-select-v2
             v-model="state.category_id"
             :options="state.categories"
@@ -196,11 +199,57 @@
             allow-create
             clearable
           />
-          <el-text v-if="state.price != 0 && state.option_id != 0 && state.option_id !== undefined" style="margin-left:1rem">
+          <el-text
+            v-if="
+              state.price != 0 &&
+              state.option_id != 0 &&
+              state.option_id !== undefined
+            "
+            style="margin-left: 1rem"
+          >
             {{ state.price }} 元
           </el-text>
-        </el-col>
-      </el-row>
+        </el-form-item>
+        <el-form-item label="预定时间" prop="time">
+          <el-date-picker
+            v-model="state.ruleForm.time"
+            type="datetimerange"
+            range-separator="至"
+            start-placeholder="最早时间"
+            end-placeholder="最迟时间"
+          />
+        </el-form-item>
+        <el-form-item label="特殊需求" prop="special_needs">
+          <el-input :autosize="{ minRows: 1}" type="textarea" v-model="state.ruleForm.special_needs" />
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input :autosize="{ minRows: 1}" type="textarea" v-model="state.ruleForm.remark" />
+        </el-form-item>
+      </el-form>
+    </el-card>
+    <el-card
+      v-if="
+        (state.empty && state.edit_now_id == 0) ||
+        (![undefined, 0].includes(state.client_id) &&
+          ![undefined, 0].includes(state.local_id) &&
+          ![undefined, 0].includes(state.serv_id))
+      "
+    >
+      <template #header>
+        <el-form-item label="随机派工">
+          <el-switch
+            v-model="state.autoEmp"
+            class="ml-2"
+            style="--el-switch-on-color: #13ce66;"
+            :loading="state.changeLoading"
+            :before-change="beforeChange"
+          />
+        </el-form-item>
+      </template>
+      <!-- 随机派工 -->
+      <div v-if="state.autoEmp"></div>
+      <!-- 非随机派工 -->
+      <div v-else></div>
     </el-card>
     <edit-dialog-customer
       v-if="state.edit_id > -1"
@@ -215,6 +264,7 @@ import { onMounted, reactive, getCurrentInstance, ref } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditCoreCustomer from "@/components/EditCoreCustomer.vue";
 import EditDialogCustomer from "@/components/EditDialogCustomer.vue";
+import { ElMessageBox } from "element-plus";
 import type {
   customer_dataset,
   customer_list,
@@ -225,34 +275,46 @@ import type {
   req_service_category,
   req_service_option,
   service_option,
-  service
+  service,
+  remain
 } from "../utils/type.d.ts";
 
 type EditCoreCustomerType = InstanceType<typeof EditCoreCustomer>;
+interface orderFrom{
+  order_time    : string,
+  order_time_end: string,
+  remark        : string,
+  special_needs : string,
+  time          : Date[]|undefined[]|string[]
+}
 interface Order_add_data {
-  disable_close: boolean,
-  edit_id: number,
-  edit_now_id: number,
-  loading: boolean,
-  empty: boolean,
-  searchStr: string,
-  client_id: number,
-  local_id: number,
-  serv_id: number,
-  category_id:number|string|undefined,
-  service_id:number|string|undefined,
-  option_id:number|string|undefined,
-  categories: Opts[],
-  services: Opts[],
-  options: Opts[],
-  client_data: customer_list[],
-  location_data: customer_addr[],
-  serv_data: customer_services[],
-  price:number|string
+  disable_close: boolean;
+  edit_id      : number;
+  edit_now_id  : number;
+  loading      : boolean;
+  empty        : boolean;
+  searchStr    : string;
+  client_id    : number | string | undefined;
+  local_id     : number | string | undefined;
+  serv_id      : number | string | undefined;
+  category_id  : number | string | undefined;
+  service_id   : number | string | undefined;
+  option_id    : number | string | undefined;
+  categories   : Opts[];
+  services     : Opts[];
+  options      : Opts[];
+  client_data  : customer_list[];
+  location_data: customer_addr[];
+  serv_data    : customer_services[];
+  price        : number | string;
+  ruleForm:orderFrom,
+  autoEmp:boolean,
+  changeLoading:boolean,
+  remain:number
 }
 interface Opts {
-  value: number|string,
-  label: number|string
+  value: number | string;
+  label: number | string;
 }
 const serv_types: string[] = [
   "暂无",
@@ -276,10 +338,11 @@ const serv_type_color: string[] = [
   "",
 ];
 let categories_loaded: boolean = false;
-let services_loaded: boolean = false;
-let options_loaded: boolean = false;
-let services:service[] = [];
-let option:service_option[] = [];
+let services_loaded: boolean   = false;
+let options_loaded: boolean    = false;
+let services: service[]        = [];
+let option: service_option[]   = [];
+const rules = {};
 </script>
 <script setup lang="ts">
 const { urls, showMsg, req } =
@@ -289,10 +352,9 @@ const handleDelete = (e, a) => console.log(e, a);
 const handleEdit = (e, a) => console.log(e, a);
 const formRef = ref<EditCoreCustomerType | null>(null);
 
-let categories_loading = ref<boolean>(false)
-let services_loading = ref<boolean>(false)
-let options_loading = ref<boolean>(false)
-
+let categories_loading = ref<boolean>(false);
+let services_loading   = ref<boolean>(false);
+let options_loading    = ref<boolean>(false);
 
 const state = reactive<Order_add_data>({
   disable_close: false,
@@ -304,36 +366,62 @@ const state = reactive<Order_add_data>({
   client_id    : undefined,
   local_id     : undefined,
   serv_id      : undefined,
-  category_id  : '',
-  service_id   : '',
-  option_id    : '',
+  category_id  : undefined,
+  service_id   : undefined,
+  option_id    : undefined,
   client_data  : [],
   location_data: [],
   serv_data    : [],
   categories   : [],
   services     : [],
   options      : [],
-  price        : 0
+  price        : 0,
+  ruleForm     : {
+    remark        : '',
+    order_time    : '',
+    order_time_end: '',
+    special_needs : '',
+    time: [undefined, undefined]
+  },
+  autoEmp: true,
+  changeLoading:false,
+  remain : 0
 });
 
+onMounted(()=>{
+  order_get_remain();
+});
+
+const order_get_remain = ()=>{
+  req.get(urls.order_get_remain, (d:remain)=>state.remain = parseInt(`${d.data}`));
+}
+
 const addr_change = () => {
-  state.local_id = 0;
-  state.serv_id = 0;
+  state.local_id = undefined;
+  state.serv_id = undefined;
 };
 
-const category_change = ()=>{
+const category_change = () => {
   state.service_id = undefined;
   state.option_id = undefined;
-  const tmpOpt:Opts[] = [];
-  services.forEach(a=>a.class_id == state.category_id && tmpOpt.push({label:'', value:''}))
-  state.categories = tmpOpt;
-}
-const services_change = ()=>{
+  const tmpOpt: Opts[] = [];
+  if (services.length < 1) loadCore(true, services_loaded, "services_list");
+  services.forEach(
+    (a) =>
+      a.class_id == state.category_id && tmpOpt.push({ label: a.name, value: a.id })
+  );
+  state.services = tmpOpt;
+};
+const services_change = () => {
   state.option_id = undefined;
-  const tmpOpt:Opts[] = [];
-  option.forEach(a=>a.service_id == state.serv_id && tmpOpt.push({label:'', value:''}))
+  const tmpOpt: Opts[] = [];
+  if (option.length < 1) loadCore(true, options_loaded, "services_options");
+  option.forEach(
+    (a) =>
+      a.service_id == state.service_id && tmpOpt.push({ label: a.name, value: a.id })
+  );
   state.options = tmpOpt;
-}
+};
 
 const on11Get = (v: string) => v.length >= 11 && getData();
 let cancel: false | Function = false;
@@ -353,7 +441,10 @@ const getData = () => {
     { mobile },
     (d: customer_dataset) => {
       state.loading = false;
+      console.log(d.data.length);
+
       if (d.data.length == 0) {
+        state.empty = true;
         state.edit_now_id = 0;
         return;
       }
@@ -389,48 +480,80 @@ const getPrice = () => {
       break;
     }
   }
+};
+
+const beforeChange = () => {
+  state.changeLoading = true
+  return new Promise((solve, reject) => {
+    if (state.autoEmp === false || state.remain == -1) {
+      state.changeLoading = false;
+      return solve(true);
+    }
+    if (state.autoEmp === true &&  state.remain == 0) {
+      ElMessageBox.alert('您的指定派工次数已用完');
+      reject(true);
+    }
+    const $remain:number|string = state.remain == -1 ? '不限' : state.remain ;
+    ElMessageBox.confirm(`您的指定派工次数为 ${$remain} 次，您确定要指定派工吗？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "info",
+  }).then(solve)
+  .catch(reject)
+  .finally(()=>{
+    state.changeLoading = false;
+  })
+  })
 }
 
 const loadAll = () => {
   changeLoading(true);
-  loadCore(false, categories_loaded, 'services_category');
-  loadCore(false, services_loaded, 'services_list');
-  loadCore(false, options_loaded, 'services_options');
-}
+  loadCore(false, categories_loaded, "services_category");
+  loadCore(false, services_loaded, "services_list");
+  loadCore(false, options_loaded, "services_options");
+};
 const forceLoadAll = () => {
   changeLoading(true);
-  ['services_category', 'services_list', 'services_options'].forEach(a => loadCore(true, true, a))
-}
+  ["services_category", "services_list", "services_options"].forEach((a) =>
+    loadCore(true, true, a)
+  );
+};
 const service_func = {
-  services_list(d:service_dataset) {
+  services_list(d: service_dataset) {
     // state.services = d.data.map((a):Opts =>{return {label: a.name, value: a.id}});
     services = d.data;
     services_loaded = true;
   },
-  services_category(d:req_service_category) {
-    state.categories = d.data.map((a):Opts =>{return {label: a.name, value: a.id}});
+  services_category(d: req_service_category) {
+    state.categories = d.data.map((a): Opts => {
+      return { label: a.name, value: a.id };
+    });
     categories_loaded = true;
   },
-  services_options(d:req_service_option) {
+  services_options(d: req_service_option) {
     // state.options = d.data.map((a):Opts =>{return {label: a.name, value: a.id}});
     options_loaded = true;
     option = d.data;
-  }
-}
-const changeLoading  = (opt:boolean) => {
-    categories_loading = opt;
-    services_loading = opt;
-    options_loading = opt;
-}
-const loadCore = (force:boolean, itemLoaded:boolean, urlKey:string) => {
+  },
+};
+const changeLoading = (opt: boolean) => {
+  categories_loading = opt;
+  services_loading = opt;
+  options_loading = opt;
+};
+const loadCore = (force: boolean, itemLoaded: boolean, urlKey: string) => {
   if (force || !itemLoaded) {
     changeLoading(true);
-    req.get(urls[urlKey], (d)=>{
-      service_func[urlKey](d);
-      changeLoading(false);
-    }, ()=>changeLoading(false));
-  } else changeLoading(false)
-}
+    req.get(
+      urls[urlKey],
+      (d) => {
+        service_func[urlKey](d);
+        changeLoading(false);
+      },
+      () => changeLoading(false)
+    );
+  } else changeLoading(false);
+};
 
 const handleSubmit = () => {};
 </script>
@@ -460,6 +583,23 @@ const handleSubmit = () => {};
 .edit {
   color: #409eff;
   cursor: pointer;
+}
+.good-form{
+  margin-top: 2rem;
+  width: 35%;
+  min-width: 300px;
+}
+.el-card:not(:first-child) {
+  margin-top: 1rem;
+}
+
+.el-select-v2 {
+  display: block;
+  width: 100%;
+  padding-right: 2rem;
+}
+.el-select-v2:not(:first-child) {
+  margin-top: 1rem;
 }
 </style>
 <style>

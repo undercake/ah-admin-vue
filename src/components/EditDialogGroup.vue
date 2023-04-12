@@ -1,18 +1,30 @@
 <template>
   <el-dialog
-    v-if="state.is_edit"
-    v-model="state.is_edit"
     :title="state.edit_id == 0 ? '添加角色' : '编辑角色'"
     width="40%"
     center
     :close-on-click-modal="false"
-    :show-close="!state.disable_close"
+    :show-close="false"
+    :model-value="true"
   >
-  
-  <el-skeleton :rows="5" animated v-if="state.load_all" />
+    <template #header>
+      <span role="heading" class="el-dialog__title"
+        >{{ id == 0 ? "添加" : "编辑" }}服务</span
+      >
+      <button
+        class="el-dialog__headerbtn"
+        type="button"
+        :disabled="state.disable_close"
+        @click="handleClose"
+      >
+        <i class="el-icon el-dialog__close fa-solid fa-xmark-large fa-fw" />
+      </button>
+    </template>
+
+    <el-skeleton :rows="5" animated v-if="state.load_all" />
     <el-form
       :model="state.ruleForm"
-      :rules="state.rules"
+      :rules="rules"
       ref="formRef"
       label-width="100px"
       class="good-form"
@@ -24,11 +36,7 @@
     </el-form>
     <el-skeleton :rows="3" animated v-if="state.group_load" />
     <el-scrollbar class="container" v-if="!state.group_load">
-      <el-card
-        class="box-card"
-        v-for="item in state.right_list"
-        :key="item.id"
-      >
+      <el-card class="box-card" v-for="item in state.right_list" :key="item.id">
         <template #header>
           <div class="card-header">
             <span>{{ item.name }}</span>
@@ -41,7 +49,13 @@
         <el-row :gutter="20">
           <el-col :span="12" v-for="o in item.children" :key="o.id">
             <span>{{ o.name }}</span>
-            <el-tag class="mx-1" effect="plain" :type="o.type == 2 ? 'success' : ''" round v-if="o.type !== 0">
+            <el-tag
+              class="mx-1"
+              effect="plain"
+              :type="o.type == 2 ? 'success' : ''"
+              round
+              v-if="o.type !== 0"
+            >
               {{ ["API", "编辑"][o.type - 1] }}
             </el-tag>
             <span class="right">
@@ -57,7 +71,7 @@
     </el-scrollbar>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="close" :disabled="state.disable_close">
+        <el-button @click="handleClose" :disabled="state.disable_close">
           取消
         </el-button>
         <el-button
@@ -71,16 +85,21 @@
     </template>
   </el-dialog>
 </template>
-<script setup>
+<script>
 import { reactive, onMounted, getCurrentInstance, ref } from "vue";
 
+const rules = {
+  name: [{ required: "true", message: "角色名不能为空", trigger: ["blur"] }],
+};
+</script>
+<script setup>
 const { urls, req, showMsg, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
-const emit = defineEmits();
-onMounted(() => {});
+const emit = defineEmits(["close", "reload"]);
+const props = defineProps(["id"]);
+const id = props["id"];
 const formRef = ref();
 const state = reactive({
-  id: -1,
   is_edit: false,
   group_load: false,
   load_all: false,
@@ -91,9 +110,11 @@ const state = reactive({
     name: "",
   },
   rights_selected: new Set([]),
-  rules: {
-    name: [{ required: "true", message: "角色名不能为空", trigger: ["blur"] }],
-  },
+});
+
+onMounted(() => {
+  get_rights();
+  get_group_info();
 });
 
 const open = (id = 0) => {
@@ -102,7 +123,7 @@ const open = (id = 0) => {
   state.is_edit = true;
   get_rights();
   if (id > 0) {
-    state.id = id;
+    id = id;
     get_group_info();
   }
 };
@@ -121,45 +142,48 @@ const switch_change = (id, rs) => {
   });
 };
 
-const close = () => (state.is_edit = false);
-
 const get_group_info = () => {
+  if (id == 0) return;
   state.load_all = true;
-  const id = state.id;
-  req.get(`${urls.group_detail}/id/${id}`, ({ detail }) => {
-    state.ruleForm.name = detail.name;
-    state.rights_selected.clear();
-    detail.rights
-      .split(",")
-      .forEach((e) => state.rights_selected.add(parseInt(e)));
-    console.log(detail, state.rights_selected);
-    state.load_all = false;
-  }, close);
+  req.get(
+    `${urls.group_detail}/id/${id}`,
+    ({ detail }) => {
+      state.ruleForm.name = detail.name;
+      state.rights_selected.clear();
+      detail.rights
+        .split(",")
+        .forEach((e) => state.rights_selected.add(parseInt(e)));
+      console.log(detail, state.rights_selected);
+      state.load_all = false;
+    },
+    handleClose
+  );
 };
 
 const get_rights = () => {
   state.group_load = true;
-  req.get(
-    urls.rights_list,
-    (d) => {
-      const data = [];
-      d.data.forEach(
-        (r) => r.parent == 0 && (data[r.id] = { ...r, children: [] })
-      );
-      console.log(data);
-      d.data.forEach((r) => {
-        const { id, parent, type, path, name } = r;
-        console.log({ id, parent, type, path, name });
-        if (parent !== 0) {
-          if (data[parent] === undefined) d.data.forEach(a => a.id == parent && (data[parent] = {...a, children:[]}));
-          if (data[parent]?.children === undefined) data[parent] = {...data[parent], children:[]};
-          data[parent].children.push({ id, parent, type, path, name });
-        }
-      });
-      state.right_list = data.filter((e) => e);
-      state.group_load = false;
-    },
-  );
+  req.get(urls.rights_list, (d) => {
+    const data = [];
+    d.data.forEach(
+      (r) => r.parent == 0 && (data[r.id] = { ...r, children: [] })
+    );
+    console.log(data);
+    d.data.forEach((r) => {
+      const { id, parent, type, path, name } = r;
+      console.log({ id, parent, type, path, name });
+      if (parent !== 0) {
+        if (data[parent] === undefined)
+          d.data.forEach(
+            (a) => a.id == parent && (data[parent] = { ...a, children: [] })
+          );
+        if (data[parent]?.children === undefined)
+          data[parent] = { ...data[parent], children: [] };
+        data[parent].children.push({ id, parent, type, path, name });
+      }
+    });
+    state.right_list = data.filter((e) => e);
+    state.group_load = false;
+  });
 };
 
 const submit_form = async () => {
@@ -172,14 +196,14 @@ const submit_form = async () => {
       return;
     }
     const { name } = state.ruleForm;
-    const url = state.id == 0 ? urls.group_add : urls.group_alter;
-    const method = state.id == 0 ? "post" : "put";
+    const url = id == 0 ? urls.group_add : urls.group_alter;
+    const method = id == 0 ? "post" : "put";
     req[method](
       url,
       {
         name,
         rights: Array.from(state.rights_selected).toString(),
-        id: state.id,
+        id: id,
       },
       (d) => {
         state.is_edit = false;
@@ -188,9 +212,9 @@ const submit_form = async () => {
           name: "",
         };
         state.rights_selected.clear();
-        state.id = -1;
         showMsg.succ("提交成功！");
         emit("reload", true);
+        handleClose(true);
       },
       (e) => {
         console.warn(e);
@@ -199,8 +223,11 @@ const submit_form = async () => {
     );
   });
 };
+const handleClose = (e) => {
+  emit("close", e);
+};
 
-defineExpose({ open, close });
+// defineExpose({ open, close });
 </script>
 <style scoped>
 .dialog-footer button:first-child {

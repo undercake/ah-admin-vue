@@ -10,7 +10,7 @@
     >
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd">
+          <el-button type="primary" @click="handleEdit(0)">
             <i class="fa fa-solid fa-plus"></i>
             增加
           </el-button>
@@ -81,7 +81,7 @@
         @current-change="changePage"
       />
     </el-card>
-    <EditDialogGroup ref="editRef" @reload="getData(0)" />
+    <EditDialogGroup :id="state.edit_id" v-if="state.edit_id >= 0" @reload="getData(0)" @close="handleEdit(-1)" />
   </Layout>
 </template>
 
@@ -90,10 +90,10 @@ import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogGroup from "@/components/EditDialogGroup.vue";
 
-const editRef = ref(false);
-const { urls, showMsg, req, mittBus } =
+const { urls, showMsg, req, mittBus, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
+  edit_id:-1,
   firstLoading: true,
   loading: true,
   tableData: [], // 数据列表
@@ -102,8 +102,6 @@ const state = reactive({
   currentPage: 1, // 当前页
   pageSize: 20, // 分页大小
   type: "add", // 操作类型
-  level: 1,
-  parent_id: 0,
   empty: "没有数据",
 });
 onMounted(() => {
@@ -138,11 +136,12 @@ const changePage = (val) => {
   state.currentPage = val;
   getData(val);
 };
-const handleAdd = () => {
-  editRef.value.open(0);
-};
 // 修改分类
-const handleEdit = (id) => editRef.value.open(id);
+const handleEdit = (id) => {
+  if (hasRights("/group/edit"))
+    state.edit_id = id;
+  else showMsg.err('您没有权限编辑此项目');
+}
 // 选择项
 const handleSelectionChange = (val) => {
   state.multipleSelection = val;

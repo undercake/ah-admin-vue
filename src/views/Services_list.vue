@@ -142,15 +142,15 @@
       />
     </el-card>
     <EditDialogServ
-      v-if="state.edit_serv !== 0"
+      v-if="state.edit_serv >= 0"
       :id="state.edit_serv"
       @closed="handleClosed"
       @reload="getData(0)"
     />
     <EditDialogServOpts
-      v-if="state.edit_opts !== 0"
+      v-if="state.edit_opts > 0"
       :id="state.edit_opts"
-      @closed="handleClosed"
+      @close="handleClosed"
     />
   </Layout>
 </template>
@@ -167,8 +167,8 @@ const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
   hover_id: -1,
-  edit_serv: 0,
-  edit_opts: 0,
+  edit_serv: -1,
+  edit_opts: -1,
   opt_count: [],
   firstLoading: true,
   loading: true,
@@ -189,8 +189,8 @@ onMounted(() => {
 });
 // 获取数据
 const getData = (page = 0) => {
-  state.edit_opts = 0;
-  state.edit_serv = 0;
+  state.edit_opts = -1;
+  state.edit_serv = -1;
   if (page === 0) page = state.currentPage;
   state.loading = true;
   req.get(urls.services_category, (d) => {
@@ -287,8 +287,8 @@ const handleDeleteOne = (id) => {
 };
 
 const handleClosed = () => {
-  state.edit_opts = 0;
-  state.edit_serv = 0;
+  state.edit_opts = -1;
+  state.edit_serv = -1;
 };
 
 </script>

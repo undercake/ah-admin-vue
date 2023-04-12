@@ -1,15 +1,14 @@
 <template>
   <el-dialog
-    :model-value="state.is_edit"
+    :model-value="true"
     width="40%"
     center
     :close-on-click-modal="false"
     :show-close="false"
-    v-loading="state.emp_load"
   >
     <template #header>
       <span role="heading" class="el-dialog__title">编辑选项</span>
-      <button aria-label="el.dialog.close" class="el-dialog__headerbtn" type="button" :disabled="!state.disable_close" @click="handleClose">
+      <button aria-label="el.dialog.close" class="el-dialog__headerbtn" type="button" :disabled="state.disable_close" @click="handleClose">
         <i class="el-icon el-dialog__close fa-solid fa-xmark-large fa-fw" />
       </button>
     </template>
@@ -53,11 +52,10 @@ import ServOpts from "./ServOpts.vue";
 const { urls, req, showMsg } =
   getCurrentInstance().appContext.config.globalProperties;
 
-const emit = defineEmits(['closed']);
+const emit = defineEmits(['close']);
 const props = defineProps(['id']);
 const state = reactive({
   id: -1,
-  is_edit: false,
   emp_load: true,
   disable_close: false,
   firstLoading: true,
@@ -89,7 +87,10 @@ const get_service_opt = () => {
     });
     state.emp_load = false;
     console.log(state.ruleForm);
-  }, emit("closed", e));
+  }, e=>{
+    console.log(e);
+    emit("closed", true);
+  });
   req.get(
     `${urls.services_options}/id/${id}`,
     ({ data }) => (state.options = data)
@@ -97,15 +98,13 @@ const get_service_opt = () => {
 };
 
 onMounted(() => {
-  state.is_edit = true;
   state.id = props['id'];
   console.log(state);
   get_service_opt();
 });
 
 const handleClose = e => {
-  state.is_edit = false;
-  emit('closed', e);
+  emit('close', true);
 }
 
 const handleAdd = () => {

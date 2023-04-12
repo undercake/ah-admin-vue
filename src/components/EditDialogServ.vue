@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :model-value="state.is_edit"
+    :model-value="true"
     width="40%"
     center
     :close-on-click-modal="false"
@@ -9,7 +9,9 @@
   >
     <template #header>
       <span role="heading" class="el-dialog__title"
-        >{{ state.id == 0 ? "添加" : "编辑" }}服务</span
+        >
+        {{ state.id == 0 ? "添加" : "编辑" }}服务
+        </span
       >
       <button
         class="el-dialog__headerbtn"
@@ -129,7 +131,10 @@
         </el-upload>
       </el-form-item>
       <el-form-item label="详情" prop="details">
-        <div style="border: 1px solid #ccc; border-radius: 5px; padding: 2px 0" class="ckeditor">
+        <div
+          style="border: 1px solid #ccc; border-radius: 5px; padding: 2px 0"
+          class="ckeditor"
+        >
           <div v-if="state.progress > 0">
             <el-progress :percentage="state.progress" />
           </div>
@@ -144,9 +149,9 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleClose" :disabled="state.disable_close"
-          >取消</el-button
-        >
+        <el-button @click="handleClose" :disabled="state.disable_close">
+          取消
+        </el-button>
         <el-button
           type="primary"
           @click="submit_form"
@@ -160,15 +165,9 @@
   </el-dialog>
 </template>
 <script setup>
-import {
-  reactive,
-  onUnmounted,
-  onMounted,
-  ref,
-  getCurrentInstance
-} from "vue";
-import CKEditor from '@ckeditor/ckeditor5-vue';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { reactive, onUnmounted, onMounted, ref, getCurrentInstance } from "vue";
+import CKEditor from "@ckeditor/ckeditor5-vue";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 const ckeditor = CKEditor.component;
 const { urls, req, showMsg } =
@@ -182,7 +181,6 @@ const state = reactive({
   dialogImageUrl: "",
   uploading: false,
   id: -1,
-  is_edit: false,
   load_all: true,
   disable_close: false,
   emp_list: [],
@@ -201,16 +199,15 @@ const rules = {
   name: [{ required: "true", message: "服务名称不能为空", trigger: ["blur"] }],
   intro: [{ required: "true", message: "简介不能为空", trigger: ["blur"] }],
 };
-const onEditorReady = e=>{
-  console.log(e,ckeditor,ClassicEditor);
+const onEditorReady = (e) => {
+  console.log(e, ckeditor, ClassicEditor);
   // console.log(ckeditor.props.config());
-}
+};
 const EditConf = {
-  language: 'zh'
+  language: "zh",
 };
 
 const handleClose = (e) => {
-  state.is_edit = false;
   emit("closed", e);
 };
 
@@ -220,7 +217,6 @@ const handleRemove = (e) => {
 };
 
 onMounted(() => {
-  state.is_edit = true;
   state.id = props["id"];
   console.log(state);
   get_service_info();
@@ -235,34 +231,38 @@ onUnmounted(() => {
 const get_service_info = () => {
   state.load_all = true;
   const id = state.id;
-  req.get(`${urls.services_detail}/id/${id}`, ({ detail }) => {
-    const {
-      avatar,
-      banner,
-      class_id,
-      details,
-      id,
-      intro,
-      name,
-      prompt,
-      status,
-    } = detail;
-    state.ruleForm = {
-      avatar,
-      banner: banner.split(",").map((url) => {
-        return { url };
-      }),
-      class_id,
-      details,
-      id,
-      intro,
-      name,
-      prompt,
-      status,
-    };
-    state.load_all = false;
-    console.log(state.ruleForm);
-  }, ()=>emit("closed", e));
+  req.get(
+    `${urls.services_detail}/id/${id}`,
+    ({ detail }) => {
+      const {
+        avatar,
+        banner,
+        class_id,
+        details,
+        id,
+        intro,
+        name,
+        prompt,
+        status,
+      } = detail;
+      state.ruleForm = {
+        avatar,
+        banner: banner.split(",").map((url) => {
+          return { url };
+        }),
+        class_id,
+        details,
+        id,
+        intro,
+        name,
+        prompt,
+        status,
+      };
+      state.load_all = false;
+      console.log(state.ruleForm);
+    },
+    () => emit("closed", true)
+  );
   req.get(urls.services_category, ({ data }) => (state.category = data));
 };
 
@@ -272,7 +272,7 @@ const setPath = (uid, path) =>
       state.ruleForm.banner[i] = { status: "success", uid, url: path };
   });
 
-const submit_form = e => {
+const submit_form = (e) => {
   state.uploading = true;
   Promise.all(
     state.ruleForm.banner
@@ -282,7 +282,7 @@ const submit_form = e => {
           new Promise((resolve, reject) => {
             req.upload(
               urls.upload_public,
-              e.raw ,
+              e.raw,
               (p) => (state.progress = p),
               (u) => {
                 setPath(e.uid, u.path);
@@ -294,19 +294,19 @@ const submit_form = e => {
       )
   )
     .then((e) => {
-      console.log('t',e);
+      console.log("t", e);
       state.uploading = false;
       state.progress = 0;
       submit_data(e);
     })
     .catch((e) => {
-      console.log('c',e);
+      console.log("c", e);
       state.uploading = false;
       state.progress = 0;
     });
   return console.log(state.ruleForm);
-}
-const submit_data = e=>{
+};
+const submit_data = (e) => {
   console.log(state.ruleForm);
   formRef.value.validate((valid, err) => {
     if (!valid) {
@@ -327,23 +327,22 @@ const submit_data = e=>{
       {
         id,
         avatar,
-        banner: banner.map(({url}) => url).toString(),
+        banner: banner.map(({ url }) => url).toString(),
         class_id,
         details,
-        intro: intro.replace(/<([a-z]+?)(?:\s+?[^>]*?)?>\s*?<\/\1>/ig, ""),
+        intro: intro.replace(/<([a-z]+?)(?:\s+?[^>]*?)?>\s*?<\/\1>/gi, ""),
         name,
         prompt,
-        status
+        status,
       },
       (d) => {
-        state.is_edit = false;
         state.disable_close = false;
         state.ruleForm = {
           name: "",
         };
         state.id = -1;
         showMsg.succ("提交成功！");
-        emit("reload", e);
+        emit("reload", true);
       },
       (e) => {
         console.warn(e);
@@ -456,7 +455,7 @@ img.img {
 .ck.ck-sticky-panel__content {
   border-bottom: 1px solid #ccced1;
 }
-.ck.ck-editor__editable_inline p{
+.ck.ck-editor__editable_inline p {
   color: #606266;
 }
 </style>

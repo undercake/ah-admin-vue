@@ -73,7 +73,7 @@
           <el-input type="number" v-model="state.address[i].area" />
         </el-form-item>
       </div>
-      <div class="text-center text-plus" @click="handleAdd('address')">
+      <div v-if="state.showAdd" class="text-center text-plus" @click="handleAdd('address')">
         <i class="fa-solid fa-plus"></i>
       </div>
     </el-card>
@@ -118,7 +118,7 @@
           <el-input type="text" v-model="state.contract[i].remark" />
         </el-form-item>
       </div>
-      <div class="text-center text-plus" @click="handleAdd('contract')">
+      <div v-if="state.showAdd" class="text-center text-plus" @click="handleAdd('contract')">
         <i class="fa-solid fa-plus"></i>
       </div>
     </el-card>
@@ -157,6 +157,7 @@ const client_type = [
   { value: 2, label: "重要领导" },
 ];
 const state = reactive({
+  showAdd:true,
   emp_load: false,
   contract: [
     {
@@ -220,8 +221,10 @@ const name_change = () => {
 const get_emp_info = () => {
   if (id === undefined || (id !== undefined && id < 1)) {
     const mobile = props["mobile"];
-    if (typeof mobile == "string" && mobile.trim() !== "")
+    if (typeof mobile == "string" && mobile.trim() !== ""){
       state.ruleForm.mobile = mobile;
+      state.showAdd = false;
+    }
     return;
   }
   state.emp_load = true;
@@ -397,7 +400,7 @@ img.img {
   padding-bottom: 0.5rem;
   margin-bottom: 1.5rem;
 }
-.text.item {
+.text.item:not(:last-child) {
   border-bottom: 1px solid var(--el-border-color);
 }
 </style>
