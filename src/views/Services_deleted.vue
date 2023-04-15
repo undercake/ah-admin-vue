@@ -28,8 +28,9 @@
             </template>
           </el-popconfirm>
           <el-button type="primary" @click="getData(state.currentPage)">
-            <i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
-          >
+            <i class="fa fa-solid fa-arrows-rotate" />刷新
+          </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -68,6 +69,7 @@
       <el-pagination
         background
         layout="prev, pager, next, jumper"
+        v-if="state.total > 10"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"
@@ -116,7 +118,7 @@ const getData = (page = 0) => {
       state.currentPage = d.current_page;
       state.pageSize = d.count_per_page;
       state.total = d.count;
-      state.empty = "没有数据";;
+      state.empty = "没有数据";
     },
     (d) => {
       console.log(d);

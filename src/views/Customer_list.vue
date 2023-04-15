@@ -31,18 +31,27 @@
             <i class="fa fa-solid fa-arrows-rotate" />
             刷新
           </el-button>
+          <el-select v-model="state.searchType" class="search" placeholder="筛选" clearable :disabled="state.searchLoading" @change="getData()">
+            <el-option
+              v-for="(s,i) in serv_types"
+              :key="i"
+              :label="s"
+              :value="i"
+            />
+          </el-select>
           <el-input
             v-model="state.searchStr"
             class="search"
-            size="large"
             placeholder="输入电话号查找"
             clearable
             @keydown.enter="getData(1)"
+            :disabled="state.searchLoading"
           />
-          <el-button type="primary" @click="getData(1)">
+          <el-button type="primary" @click="getData(1)" :disabled="state.searchLoading" :loading="state.searchLoading">
             <i class="fa fa-solid fa-magnifying-glass" />
             搜索
           </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -73,7 +82,7 @@
               effect="plain"
               round
             >
-              {{ ['VIP', '重要领导'][scope.row.type - 1] }}
+              {{ ["VIP", "重要领导"][scope.row.type - 1] }}
             </el-tag>
           </template>
         </el-table-column>
@@ -117,18 +126,7 @@
                   class="mx-1"
                   effect="dark"
                 >
-                  {{
-                    [
-                      "暂无",
-                      "钟点",
-                      "包周",
-                      "包做",
-                      "年卡",
-                      "季卡",
-                      "月卡",
-                      "半月卡",
-                    ][item.type]
-                  }}
+                  {{ serv_types[item.type] }}
                 </el-tag>
               </el-text>
               <el-text truncated style="margin-left: 0.5rem">
@@ -152,7 +150,10 @@
               </el-text>
               <el-text
                 truncated
-                style="margin-left: 0.5rem;background: var(--el-color-warning-light-7);"
+                style="
+                  margin-left: 0.5rem;
+                  background: var(--el-color-warning-light-7);
+                "
               >
                 {{ item.remark }}
               </el-text>
@@ -189,9 +190,9 @@
               "
             >
               <template #reference>
-                <a style="cursor: pointer;color:#F56C6C"
-                  >{{ scope.row.black == 1 ? "取消" : "" }}拉黑</a
-                >
+                <a style="cursor: pointer; color: #f56c6c">
+                  {{ scope.row.black == 1 ? "取消" : "" }}拉黑
+                </a>
               </template>
             </el-popconfirm>
           </template>
@@ -201,6 +202,7 @@
       <el-pagination
         background
         layout="prev, pager, next, jumper"
+        v-if="state.total > 10"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"
@@ -216,11 +218,23 @@
     />
   </layout>
 </template>
-<script setup>
+
+<script>
 import { onMounted, reactive, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogCustomer from "@/components/EditDialogCustomer.vue";
-
+const serv_types = [
+  "暂无",
+  "钟点",
+  "包周",
+  "包做",
+  "年卡",
+  "季卡",
+  "月卡",
+  "半月卡",
+];
+</script>
+<script setup>
 const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
@@ -236,6 +250,8 @@ const state = reactive({
   currentPage: 1, // 当前页
   pageSize: 10, // 分页大小
   empty: "没有数据",
+  searchLoading: false,
+  searchType: undefined
 });
 onMounted(() => {
   getData();
@@ -273,21 +289,25 @@ const getData = (page = 0) => {
     state.firstLoading = false;
     state.currentPage = d.current_page;
     state.pageSize = d.count_per_page;
+    state.searchLoading = false;
     state.total = d.count;
     state.empty = "没有数据";
     console.log(state);
   };
   const handleErr = (d) => {
     console.error(d);
+    state.searchLoading = false;
     state.loading = false;
     state.firstLoading = false;
     state.empty = "加载错误";
   };
-  if (state.searchStr.trim() == "")
+  const _type = (state.searchType <= -1 || state.searchType === undefined || ('' + state.searchType).trim() === '') ? '' : '/type/' + state.searchType;
+  state.searchLoading = true;
+  if (state.searchStr.trim() == "" && (state.searchType === -1 || state.searchType === undefined || ('' + state.searchType).trim() === ''))
     req.get(`${urls.customer_list}/page/${page}`, processData, handleErr);
   else
     req.post(
-      `${urls.customer_search}/page/${page}`,
+      `${urls.customer_search}/page/${page}${_type}`,
       {
         mobile: state.searchStr.trim(),
       },

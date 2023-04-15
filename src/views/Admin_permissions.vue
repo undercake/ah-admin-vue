@@ -27,6 +27,7 @@
             ><i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
           >
         </div>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
       </template>
       <el-table
         ref="multipleTable"
@@ -62,7 +63,8 @@
       <!--总数超过一页，再展示分页器-->
       <el-pagination
         background
-        layout="prev, pager, next"
+        layout="prev, pager, next, jumper"
+        v-if="state.total > 10"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"

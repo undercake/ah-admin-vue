@@ -8,6 +8,7 @@ import ElementPlus from 'unplugin-element-plus/vite' // 不加这个配置，ElM
 // https://vitejs.dev/config/
 // export default ({ mode }) => defineConfig({
 export default defineConfig({
+  base: '/vite/midas',
   plugins: [
     vue(),
     // 按需引入，主题色的配置，需要加上 importStyle: 'sass'
@@ -40,7 +41,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src')
     },
   },
-  base: './',
   server: {
     proxy: {
       '/midas': {

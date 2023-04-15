@@ -31,13 +31,14 @@
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量删除</el-button
-              >
+                批量删除
+              </el-button>
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)"
-            ><i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
-          >
+          <el-button type="primary" @click="getData(state.currentPage)">
+            <i class="fa fa-solid fa-arrows-rotate" />刷新
+          </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -58,9 +59,7 @@
               />
               <el-button
                 type="success"
-                @click="
-                  changeName(scope.row.id, state.tmpChName)
-                "
+                @click="changeName(scope.row.id, state.tmpChName)"
               >
                 确定
               </el-button>
@@ -123,7 +122,7 @@
       <!--总数超过一页，再展示分页器-->
       <el-pagination
         background
-        layout="prev, pager, next"
+        layout="prev, pager, next, jumper"
         v-if="state.total > 10"
         :total="state.total"
         :page-size="state.pageSize"
@@ -141,7 +140,7 @@ import Layout from "@/components/Layout.vue";
 const { urls, showMsg, req } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
-  tmpChName:'',
+  tmpChName: "",
   hover_id: -1,
   edit_cat: -1,
   firstLoading: true,
@@ -192,16 +191,22 @@ const handleAdd = () => (state.edit_cat = 0);
 const handleEdit = (id, name) => {
   state.edit_cat = id;
   state.tmpChName = name;
-  console.log(id,name);
-  };
+  console.log(id, name);
+};
 const changeName = (id, name) =>
-  req.post(urls.services_cat_name, { id, name }, (d) => {
-    showMsg.succ("提交成功");
-    getData();
-    state.edit_cat = -1;
-  }, o=>{
-    console.log(o);
-    state.edit_cat = -1});
+  req.post(
+    urls.services_cat_name,
+    { id, name },
+    (d) => {
+      showMsg.succ("提交成功");
+      getData();
+      state.edit_cat = -1;
+    },
+    (o) => {
+      console.log(o);
+      state.edit_cat = -1;
+    }
+  );
 // 选择项
 const handleSelectionChange = (val) => (state.multipleSelection = val);
 // 批量删除
@@ -237,7 +242,7 @@ const handleQuickEdit = (id, newStatus) => {
 };
 const cancelChangeName = () => {
   state.edit_cat = -1;
-  state.tmpChName = '';
+  state.tmpChName = "";
 };
 const handle_hover = (i, s) => (state.hover_id = s ? i : -1);
 </script>

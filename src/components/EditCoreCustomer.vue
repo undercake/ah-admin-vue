@@ -60,6 +60,7 @@
           title="确定删除吗？"
           confirmButtonText="确定"
           cancelButtonText="取消"
+          v-if="state.showAdd"
           @confirm="handleDelete('address', i)"
         >
           <template #reference>
@@ -73,7 +74,11 @@
           <el-input type="number" v-model="state.address[i].area" />
         </el-form-item>
       </div>
-      <div v-if="state.showAdd" class="text-center text-plus" @click="handleAdd('address')">
+      <div
+        v-if="state.showAdd"
+        class="text-center text-plus"
+        @click="handleAdd('address')"
+      >
         <i class="fa-solid fa-plus"></i>
       </div>
     </el-card>
@@ -89,6 +94,7 @@
           title="确定删除吗？"
           confirmButtonText="确定"
           cancelButtonText="取消"
+          v-if="state.showAdd"
           @confirm="handleDelete('contract', i)"
         >
           <template #reference>
@@ -118,30 +124,74 @@
           <el-input type="text" v-model="state.contract[i].remark" />
         </el-form-item>
       </div>
-      <div v-if="state.showAdd" class="text-center text-plus" @click="handleAdd('contract')">
+      <div
+        v-if="state.showAdd"
+        class="text-center text-plus"
+        @click="handleAdd('contract')"
+      >
         <i class="fa-solid fa-plus"></i>
       </div>
     </el-card>
   </el-scrollbar>
 </template>
-<script setup>
+<script lang="ts">
 import { reactive, onMounted, getCurrentInstance, ref } from "vue";
 import { pinyin } from "pinyin-pro";
+import type { req_data } from "../utils/type.d.ts";
 
-const { urls, req, showMsg } =
-  getCurrentInstance().appContext.config.globalProperties;
+interface Opts {
+  value: number | string;
+  label: number | string;
+}
 
-const emit = defineEmits(["loadErr", "disable"]);
-const props = defineProps(["id", "mobile"]);
-const id = props["id"];
-const formRef = ref();
+interface ruleForm {
+  name: string;
+  type: number;
+  mobile: string;
+  black: number;
+  pym: string;
+  pinyin: string;
+  remark: string;
+  total_money: number;
+  total_count: number;
+}
+
+interface contract {
+  contract_code: string;
+  contract_path: string;
+  create_time: string;
+  customer_id: number | string;
+  deleted: number;
+  id: number;
+  remark: string;
+  time: Array<null | Date | undefined>;
+  type: number;
+}
+interface address {
+  address: string;
+  area: string;
+  customer_id: number | string;
+  id: number;
+}
+
+interface state {
+  showAdd: boolean;
+  emp_load: boolean;
+  contract: contract[];
+  contract_del: Set<string | number>;
+  address: address[];
+  address_del: Set<string | number>;
+  ruleForm: ruleForm;
+}
+
 const rules = {
   name: [{ required: "true", message: "姓名不能为空", trigger: ["blur"] }],
   pinyin: [{ required: "true", message: "拼音不能为空", trigger: ["blur"] }],
   pym: [{ required: "true", message: "拼音码不能为空", trigger: ["blur"] }],
   mobile: [{ required: "true", message: "请输入手机号", trigger: "blur" }],
 };
-const options = [
+
+const options: Opts[] = [
   { value: 0, label: "暂无" },
   { value: 1, label: "钟点" },
   { value: 2, label: "包周" },
@@ -151,13 +201,21 @@ const options = [
   { value: 6, label: "月卡" },
   { value: 7, label: "半月卡" },
 ];
-const client_type = [
+const client_type: Opts[] = [
   { value: 0, label: "普通客户" },
   { value: 1, label: "VIP" },
   { value: 2, label: "重要领导" },
 ];
-const state = reactive({
-  showAdd:true,
+</script>
+<script setup lang="ts">
+const { urls, req, showMsg } =
+  getCurrentInstance().appContext.config.globalProperties;
+const emit = defineEmits(["loadErr", "disable"]);
+const props = defineProps(["id", "mobile"]);
+const id: number | string = props["id"];
+const formRef = ref();
+const state: state = reactive({
+  showAdd: true,
   emp_load: false,
   contract: [
     {
@@ -219,9 +277,9 @@ const name_change = () => {
 
 // 获取初始信息
 const get_emp_info = () => {
-  if (id === undefined || (id !== undefined && id < 1)) {
+  if (id === undefined || (id !== undefined && parseInt(id + "") < 1)) {
     const mobile = props["mobile"];
-    if (typeof mobile == "string" && mobile.trim() !== ""){
+    if (typeof mobile == "string" && mobile.trim() !== "") {
       state.ruleForm.mobile = mobile;
       state.showAdd = false;
     }
@@ -246,18 +304,18 @@ const get_emp_info = () => {
     (e) => emit("loadErr", e)
   );
 };
+const trimArr = <T extends contract|address>(d:T[]):T[] => {
+  return d.map((c) => {
+    for (const k in c) if (typeof c[k] === "string") c[k] = c[k].trim();
 
-const trimArr = (d) => {
-  return d.map(c => {
-    for (const k in c)
-      if (typeof c[k] == "string") c[k] = c[k].trim();
-
-    if (c?.time) {
+    if ( 'time' in c ) {
       ["start_time", "end_time"].forEach((t, j) => {
         c[t] =
-          c.time[j] && c.time[j] instanceof Date && !isNaN(c.time[j].getTime())
-            ? `${c.time[j].getFullYear()}-${c.time[j].getMonth() + 1}-${c.time[j].getDate()}`
-            : '0000-00-00';
+          c.time[j] && c.time[j] instanceof Date && isNaN(c.time[j].getTime())
+            ? `${c.time[j].getFullYear()}-${c.time[j].getMonth() + 1}-${c.time[
+                j
+              ].getDate()}`
+            : "0000-00-00";
       });
     }
     return c;
@@ -277,13 +335,13 @@ const getOriginData = () => {
     type,
   } = state.ruleForm;
   let { contract, address, contract_del, address_del } = state;
-  contract = trimArr(contract);
-  address = trimArr(address);
+  contract = trimArr<contract>(contract);
+  address = trimArr<address>(address);
   return {
     id,
     name,
     mobile: mobile.replaceAll("，", ","),
-    black: black === true ? 1 : 0,
+    black: black ? 1 : 0,
     pym,
     pinyin,
     remark,
@@ -319,10 +377,18 @@ const submit = async (fun) => {
     req[method](
       url,
       getOriginData(),
-      (d) => {
+      (d:req_data) => {
         emit("disable", false);
         state.ruleForm = {
           name: "",
+          type: 0,
+          mobile: "",
+          black: 0,
+          pym: "",
+          pinyin: "",
+          remark: "",
+          total_money: 0,
+          total_count: 0,
         };
         showMsg.succ("提交成功！");
         if (fun instanceof Function) fun(d);

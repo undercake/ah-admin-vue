@@ -28,17 +28,18 @@
             </template>
           </el-popconfirm>
           <el-button type="primary" @click="getData(state.currentPage)">
-            <i class="fa fa-solid fa-arrows-rotate"></i>
+            <i class="fa fa-solid fa-arrows-rotate" />
             刷新
           </el-button>
           <el-button type="success" @click="handleQuickEdit(0, 1)">
-            <i class="fa fa-solid fa-up"></i>
+            <i class="fa fa-solid fa-up" />
             批量上架
           </el-button>
           <el-button type="info" @click="handleQuickEdit(0, 0)">
-            <i class="fa fa-solid fa-down"></i>
+            <i class="fa fa-solid fa-down" />
             批量下架
           </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -67,7 +68,6 @@
                 :value="item.id"
               />
             </el-select>
-            <!--  state.category[scope.row.class_id]  -->
           </template>
         </el-table-column>
         <el-table-column prop="status" label="上架状态" width="130">
@@ -134,6 +134,7 @@
       <el-pagination
         background
         layout="prev, pager, next, jumper"
+        v-if="state.total > 10"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"

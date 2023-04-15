@@ -3,14 +3,17 @@
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
-    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
+    <el-card
+      class="category-container"
+      v-if="!state.firstLoading"
+      v-loading="state.loading"
+    >
       <template #header>
         <div class="header">
-          <el-button type="primary" @click="handleAdd"
-            >
+          <el-button type="primary" @click="handleAdd">
             <i class="fa fa-solid fa-plus"></i>
-            增加</el-button
-          >
+            增加
+          </el-button>
           <el-popconfirm
             title="确定删除吗？"
             confirmButtonText="确定"
@@ -20,12 +23,14 @@
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量删除</el-button>
+                批量删除
+              </el-button>
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)"
-            ><i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
-          >
+          <el-button type="primary" @click="getData(state.currentPage)">
+            <i class="fa fa-solid fa-arrows-rotate" />刷新
+          </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -62,7 +67,8 @@
       <!--总数超过一页，再展示分页器-->
       <el-pagination
         background
-        layout="prev, pager, next"
+        layout="prev, pager, next, jumper"
+        v-if="state.total > 10"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"
@@ -80,7 +86,8 @@ import Layout from "@/components/Layout.vue";
 import EditDialogGroup from "@/components/EditDialogGroup.vue";
 
 const editRef = ref(false);
-const { urls, showMsg, req } = getCurrentInstance().appContext.config.globalProperties;
+const { urls, showMsg, req } =
+  getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
   firstLoading: true,
   loading: true,
@@ -92,7 +99,7 @@ const state = reactive({
   type: "add", // 操作类型
   level: 1,
   parent_id: 0,
-  empty: '没有数据'
+  empty: "没有数据",
 });
 onMounted(() => {
   getData();
@@ -105,19 +112,19 @@ const getData = (page = 0) => {
     `${urls.group_list}/page/${page}`,
     (d) => {
       console.log(d);
-      state.tableData   = d.grp;
-      state.loading     = false;
+      state.tableData = d.grp;
+      state.loading = false;
       state.firstLoading = false;
       state.currentPage = d.current_page;
-      state.pageSize    = d.count_per_page;
-      state.total       = d.count;
-      state.empty       = '没有数据';
+      state.pageSize = d.count_per_page;
+      state.total = d.count;
+      state.empty = "没有数据";
     },
     (d) => {
       state.firstLoading = false;
       state.loading = false;
-      state.empty = '加载错误';
-      showMsg.err('加载错误')
+      state.empty = "加载错误";
+      showMsg.err("加载错误");
     }
   );
 };
@@ -126,7 +133,7 @@ const changePage = (val) => {
   getData(val);
 };
 const handleAdd = () => {
-  editRef.value.open(0)
+  editRef.value.open(0);
 };
 // 修改分类
 const handleEdit = (id) => editRef.value.open(id);
@@ -137,8 +144,9 @@ const handleSelectionChange = (val) => {
 // 批量删除
 const handleDelete = () => {
   console.log(state.multipleSelection.length);
-  if (state.multipleSelection.length < 1) return showMsg.warn('您没有选择要删除的数据！');
-  const ids = state.multipleSelection.map(d=>d.id);
+  if (state.multipleSelection.length < 1)
+    return showMsg.warn("您没有选择要删除的数据！");
+  const ids = state.multipleSelection.map((d) => d.id);
   // req.post(urls.group_delete,{ids}, ()=>getData());
 };
 // // 单个删除

@@ -3,13 +3,17 @@
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
-    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
+    <el-card
+      class="category-container"
+      v-if="!state.firstLoading"
+      v-loading="state.loading"
+    >
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleRec">
             <i class="fa fa-solid fa-rotate-right"></i>
-            还原</el-button
-          >
+            还原
+          </el-button>
           <el-popconfirm
             title="确定删除吗？"
             confirmButtonText="确定"
@@ -19,13 +23,14 @@
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量彻底删除</el-button
-              >
+                批量彻底删除
+              </el-button>
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)"
-            ><i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
-          >
+          <el-button type="primary" @click="getData(state.currentPage)">
+            <i class="fa fa-solid fa-arrows-rotate" />刷新
+          </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -40,12 +45,12 @@
         <el-table-column prop="name" label="姓名" width="80" />
         <el-table-column prop="gender" label="性别" width="60">
           <template #default="scope">
-            {{ (['男', '女'])[scope.row.gender] }}
+            {{ ["男", "女"][scope.row.gender] }}
           </template>
         </el-table-column>
         <el-table-column prop="phone" label="手机号" width="130">
           <template #default="scope">
-            {{ scope.row.phone.split(',')[0] }}
+            {{ scope.row.phone.split(",")[0] }}
           </template>
         </el-table-column>
         <el-table-column prop="origin" label="籍贯" width="170" />
@@ -76,6 +81,7 @@
       <el-pagination
         background
         layout="prev, pager, next, jumper"
+        v-if="state.total > 10"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"
@@ -140,14 +146,19 @@ const handleRec = (id = 0) => {
 
 const deep_delete = (id = 0) => {
   if (id === 0)
-    req.post(urls.employee_deep_del, { ids: state.multipleSelection.map(a=>a.id) }, () => {
+    req.post(
+      urls.employee_deep_del,
+      { ids: state.multipleSelection.map((a) => a.id) },
+      () => {
+        showMsg.succ("成功删除！");
+        getData();
+      }
+    );
+  else
+    req.del(urls.employee_deep_del + "/id/" + id, () => {
       showMsg.succ("成功删除！");
       getData();
     });
-  else req.del(urls.employee_deep_del + "/id/" + id, () => {
-    showMsg.succ("成功删除！");
-    getData();
-  });
 };
 // 选择项
 const handleSelectionChange = (val) => {
@@ -157,7 +168,8 @@ const handleSelectionChange = (val) => {
 // // 单个删除
 const handleDeleteOne = (id) => {
   console.log(id);
-  if (id == 0 && state.multipleSelection.length < 1) return showMsg.warn('您没有选择数据！');
+  if (id == 0 && state.multipleSelection.length < 1)
+    return showMsg.warn("您没有选择数据！");
   ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",

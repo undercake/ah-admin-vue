@@ -1,7 +1,7 @@
 /*
  * @Author: Undercake
  * @Date: 2023-04-11 10:39:10
- * @LastEditTime: 2023-04-12 15:35:25
+ * @LastEditTime: 2023-04-15 09:53:58
  * @FilePath: /ah-admin-vue/src/utils/type.d.ts
  * @Description:
  */
@@ -13,7 +13,8 @@ interface url {
 
 interface req_data {
   code: 0 | -1 | -2 | -3;
-  message?: string;
+  message?: string,
+  rs?:number|string
 }
 
 // !权限相关

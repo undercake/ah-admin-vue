@@ -1,7 +1,7 @@
 /*
  * @Author: undercake
  * @Date: 2023-03-03 17:20:58
- * @LastEditTime: 2023-04-12 17:20:47
+ * @LastEditTime: 2023-04-15 17:02:51
  * @FilePath: /ah-admin-vue/src/main.ts
  * @Description: VUE主配置文件
  */
@@ -219,10 +219,10 @@ const req = {
   get($url: string, $fb: Function, $err:Function = () => {}) {
     request("get", $url, $fb, $err);
   },
-  post($url: string, data, $fb, $err:Function = () => {}) {
+  post($url: string, data:Object, $fb:Function, $err:Function = () => {}) {
     request("post", $url, $fb, $err, data);
   },
-  put($url: string, $data, $fb, $err:Function = () => {}) {
+  put($url: string, $data:Object, $fb:Function, $err:Function = () => {}) {
     request("put", $url, $fb, $err, $data);
   },
   del($url: string, $fb = () => {}, $err:Function = () => {}) {
@@ -286,7 +286,7 @@ const hasRights = (p: string) => {
   return $rtn;
 };
 
-const getRouteName = (p: string) => {
+const getRouteName = (p: string):string => {
   groups.length < 1 && initRights();
   let $rtn = "阿惠家政管理后台";
   for (const k in groups) {
@@ -298,19 +298,19 @@ const getRouteName = (p: string) => {
   return $rtn;
 };
 
-const initRights = (e = 0) => {
+const initRights = (e = 0):void => {
   if (groups.length > 1 && e === 0) return;
   const all_rights = localGet("all_rights", false);
   if (all_rights === false) return getUserRights(getRights);
   getRights();
 };
 
-const getRights = () => {
+const getRights = ():void => {
   groups = [
     { path: "/index", name: "主页" },
     { path: "/my_pass", name: "修改我的信息" },
   ];
-  const all_rights = localGet("all_rights");
+  const all_rights:group[] = localGet("all_rights");
   all_rights.forEach((e) => {
     if (!e) return;
     const { path, name } = e;
@@ -326,6 +326,7 @@ app.config.globalProperties.req = req;
 app.config.globalProperties.mittBus = mittBus;
 app.config.globalProperties.hasRights = hasRights;
 app.config.globalProperties.getRouteName = getRouteName;
+app.config.globalProperties.version = '0.3.2';
 
 app.use(router); // 引用路由实例
 app

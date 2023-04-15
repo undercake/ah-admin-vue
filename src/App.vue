@@ -117,4 +117,7 @@ a {
 .v-cloak-c {
   display: none;
 }
+.el-text.list-total {
+  margin-left: 2rem;
+}
 </style>

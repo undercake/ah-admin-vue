@@ -104,6 +104,7 @@
         </el-sub-menu> -->
         <!-- <el-menu-item index="/account" @click="getRights"> 刷新 </el-menu-item> -->
       </el-menu>
+      <div class="version">阿惠家政 &copy; Version:{{ version }}</div>
     </el-aside>
   </el-scrollbar>
 </template>
@@ -112,7 +113,7 @@ import { onMounted, reactive, getCurrentInstance, onUnmounted } from "vue";
 import { localGet } from "@/utils";
 import { useRouter } from "vue-router";
 
-const { getUserRights, mittBus } =
+const { getUserRights, mittBus, version } =
   getCurrentInstance().appContext.config.globalProperties;
 const { push, currentRoute } = useRouter();
 
@@ -151,11 +152,11 @@ onMounted(() => {
   let d = localGet("user_rights");
   d ? process_data(d) : getUserRights((e) => process_data(e));
   state.path = currentRoute._rawValue.path;
-  mittBus.on('updateSideMenu', ()=>getUserRights(process_data));
+  mittBus.on("updateSideMenu", () => getUserRights(process_data));
 });
-onUnmounted(()=>{
-  mittBus.off('updateSideMenu');
-})
+onUnmounted(() => {
+  mittBus.off("updateSideMenu");
+});
 </script>
 <style scoped>
 .aside {
@@ -193,6 +194,14 @@ i.fa {
   line-height: 56px;
   width: 1rem;
   text-align: center;
+}
+.version {
+  text-align: center;
+  color: var(--el-color-info-dark-2);
+  position: absolute;
+  width: 100%;
+  padding-bottom: 1rem;
+  bottom: 0;
 }
 </style>
 <style>

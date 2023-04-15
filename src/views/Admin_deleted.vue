@@ -3,7 +3,11 @@
     <el-card class="category-container" v-if="state.firstLoading">
       <el-skeleton :rows="8" animated />
     </el-card>
-    <el-card class="category-container" v-if="!state.firstLoading" v-loading="state.loading">
+    <el-card
+      class="category-container"
+      v-if="!state.firstLoading"
+      v-loading="state.loading"
+    >
       <template #header>
         <div class="header">
           <el-button type="primary" @click="handleRec">
@@ -19,13 +23,14 @@
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量彻底删除</el-button
-              >
+                批量彻底删除
+              </el-button>
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)"
-            ><i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
-          >
+          <el-button type="primary" @click="getData(state.currentPage)">
+            <i class="fa fa-solid fa-arrows-rotate" />刷新
+          </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -63,6 +68,7 @@
       <!--总数超过一页，再展示分页器-->
       <el-pagination
         background
+        v-if="state.total > 10"
         layout="prev, pager, next, jumper"
         :total="state.total"
         :disabled="state.tableData.length == 0"
@@ -144,14 +150,19 @@ const handleRec = () => {
 
 const deep_delete = (id = 0) => {
   if (id === 0)
-    req.post(urls.admin_deep_del, { ids: state.multipleSelection.map(a=>a.id) }, () => {
+    req.post(
+      urls.admin_deep_del,
+      { ids: state.multipleSelection.map((a) => a.id) },
+      () => {
+        showMsg.succ("成功删除！");
+        getData();
+      }
+    );
+  else
+    req.del(urls.admin_deep_del + "/id/" + id, () => {
       showMsg.succ("成功删除！");
       getData();
     });
-  else req.del(urls.admin_deep_del + "/id/" + id, () => {
-    showMsg.succ("成功删除！");
-    getData();
-  });
 };
 
 // // 单个删除

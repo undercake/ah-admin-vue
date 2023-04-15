@@ -12,8 +12,8 @@
         <div class="header">
           <el-button type="primary" @click="handleRec">
             <i class="fa fa-solid fa-rotate-right"></i>
-            还原</el-button
-          >
+            还原
+          </el-button>
           <el-popconfirm
             title="确定删除吗？"
             confirmButtonText="确定"
@@ -23,13 +23,14 @@
             <template #reference>
               <el-button type="danger">
                 <i class="fa fa-solid fa-trash-can" />
-                批量彻底删除</el-button
-              >
+                批量彻底删除
+              </el-button>
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)"
-            ><i class="fa fa-solid fa-arrows-rotate"></i>刷新</el-button
-          >
+          <el-button type="primary" @click="getData(state.currentPage)">
+            <i class="fa fa-solid fa-arrows-rotate" />刷新
+          </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -88,6 +89,7 @@
       <el-pagination
         background
         layout="prev, pager, next, jumper"
+        v-if="state.total > 10"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"
@@ -156,10 +158,10 @@ const deep_delete = (id = 0) => {
       getData();
     });
   else
-  req.del(urls.customer_deep_del + "/id/" + id, () => {
-    showMsg.succ("成功删除！");
-    getData();
-  });
+    req.del(urls.customer_deep_del + "/id/" + id, () => {
+      showMsg.succ("成功删除！");
+      getData();
+    });
 };
 // 选择项
 const handleSelectionChange = (val) => {
@@ -171,7 +173,7 @@ const handleDelete = (id) => {
   console.log(id);
   if (id == 0 && state.multipleSelection.length < 1)
     return showMsg.warn("您没有选择数据！");
-    ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
+  ElMessageBox.confirm("此操作将会不可逆删除！请确认您的删除对象", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",

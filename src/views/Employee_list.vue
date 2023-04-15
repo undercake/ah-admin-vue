@@ -42,6 +42,7 @@
             <i class="fa fa-solid fa-magnifying-glass" />
             搜索
           </el-button>
+          <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
       <el-table
@@ -121,6 +122,7 @@
       <el-pagination
         background
         layout="prev, pager, next, jumper"
+        v-if="state.total > 10"
         :disabled="state.tableData.length == 0"
         :total="state.total"
         :page-size="state.pageSize"
@@ -151,7 +153,7 @@ const state = reactive({
   loading: true,
   tableData: [], // 数据列表
   multipleSelection: [], // 选中项
-  total: 0, // 总条数
+  c: 0, // 总条数
   currentPage: 1, // 当前页
   pageSize: 20, // 分页大小
   type: "add", // 操作类型

@@ -21,7 +21,7 @@
       <el-skeleton :rows="3" animated v-if="state.loading" />
       <div v-if="!state.empty && !state.loading" class="addr-selector">
         <el-radio-group v-model="state.client_id" @change="addr_change">
-          <div v-for="(c, i) in state.client_data" :key="i">
+          <div v-for="(c, i) in state.client_data_set" :key="i">
             <el-radio :label="c.id" size="large" border>
               <el-text>
                 <el-tag
@@ -61,7 +61,7 @@
         </el-radio-group>
       </div>
       <el-row
-        v-if="state.location_data.length > 0 && !state.loading"
+        v-if="state.location_data_set.length > 0 && !state.loading"
         :gutter="20"
       >
         <el-col :span="2">
@@ -75,9 +75,9 @@
           </el-text>
         </el-col>
         <el-col :span="20">
-          <div v-if="state.location_data.length > 0">
+          <div v-if="state.location_data_set.length > 0">
             <el-radio-group v-model="state.local_id">
-              <div v-for="(c, i) in state.location_data" :key="i">
+              <div v-for="(c, i) in state.location_data_set" :key="i">
                 <el-radio
                   :label="c.id"
                   size="large"
@@ -91,7 +91,10 @@
           </div>
         </el-col>
       </el-row>
-      <el-row v-if="state.serv_data.length > 0 && !state.loading" :gutter="20">
+      <el-row
+        v-if="state.serv_data_set.length > 0 && !state.loading"
+        :gutter="20"
+      >
         <el-col :span="2">
           选择服务项目：<br />
           <el-text
@@ -104,7 +107,7 @@
         </el-col>
         <el-col :span="20">
           <el-radio-group v-model="state.serv_id">
-            <div v-for="(c, i) in state.serv_data" :key="i">
+            <div v-for="(c, i) in state.serv_data_set" :key="i">
               <el-radio
                 :label="c.id"
                 size="large"
@@ -220,10 +223,18 @@
           />
         </el-form-item>
         <el-form-item label="特殊需求" prop="special_needs">
-          <el-input :autosize="{ minRows: 1}" type="textarea" v-model="state.ruleForm.special_needs" />
+          <el-input
+            :autosize="{ minRows: 1 }"
+            type="textarea"
+            v-model="state.ruleForm.special_needs"
+          />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
-          <el-input :autosize="{ minRows: 1}" type="textarea" v-model="state.ruleForm.remark" />
+          <el-input
+            :autosize="{ minRows: 1 }"
+            type="textarea"
+            v-model="state.ruleForm.remark"
+          />
         </el-form-item>
       </el-form>
     </el-card>
@@ -240,16 +251,50 @@
           <el-switch
             v-model="state.autoEmp"
             class="ml-2"
-            style="--el-switch-on-color: #13ce66;"
+            style="--el-switch-on-color: #13ce66"
             :loading="state.changeLoading"
             :before-change="beforeChange"
           />
         </el-form-item>
       </template>
       <!-- 随机派工 -->
-      <div v-if="state.autoEmp"></div>
+      <div v-if="state.autoEmp">
+        <el-form-item label="男员工">
+          <el-input-number
+            v-model="state.auto_male"
+            :min="0"
+            :max="20"
+            @change="handleChange"
+          />
+        </el-form-item>
+        <el-form-item label="女员工">
+          <el-input-number
+            v-model="state.auto_female"
+            :min="0"
+            :max="20"
+            @change="handleChange"
+          />
+        </el-form-item>
+        <el-button type="primary" @click="handleEmp"> 生成 </el-button>
+      </div>
       <!-- 非随机派工 -->
-      <div v-else></div>
+      <div v-else>
+        <el-select-v2
+          v-model="value"
+          style="width: 240px"
+          multiple
+          filterable
+          remote
+          :remote-method="remoteMethod"
+          clearable
+          :options="empOptions"
+          :loading="state.empLoading"
+          placeholder="Please enter a keyword"
+        />
+      </div>
+      <div class="submit">
+        <el-button type="primary" @click="handleSubmit"> 提交 </el-button>
+      </div>
     </el-card>
     <edit-dialog-customer
       v-if="state.edit_id > -1"
@@ -270,47 +315,49 @@ import type {
   customer_list,
   customer_addr,
   customer_services,
-  service_category,
   service_dataset,
   req_service_category,
   req_service_option,
   service_option,
   service,
-  remain
+  remain,
 } from "../utils/type.d.ts";
 
 type EditCoreCustomerType = InstanceType<typeof EditCoreCustomer>;
-interface orderFrom{
-  order_time    : string,
-  order_time_end: string,
-  remark        : string,
-  special_needs : string,
-  time          : Date[]|undefined[]|string[]
+interface orderFrom {
+  order_time    : string;
+  order_time_end: string;
+  remark        : string;
+  special_needs : string;
+  time          : Date[] | undefined[] | string[];
 }
 interface Order_add_data {
-  disable_close: boolean;
-  edit_id      : number;
-  edit_now_id  : number;
-  loading      : boolean;
-  empty        : boolean;
-  searchStr    : string;
-  client_id    : number | string | undefined;
-  local_id     : number | string | undefined;
-  serv_id      : number | string | undefined;
-  category_id  : number | string | undefined;
-  service_id   : number | string | undefined;
-  option_id    : number | string | undefined;
-  categories   : Opts[];
-  services     : Opts[];
-  options      : Opts[];
-  client_data  : customer_list[];
-  location_data: customer_addr[];
-  serv_data    : customer_services[];
-  price        : number | string;
-  ruleForm:orderFrom,
-  autoEmp:boolean,
-  changeLoading:boolean,
-  remain:number
+  disable_close    : boolean,
+  edit_id          : number,
+  edit_now_id      : number,
+  loading          : boolean,
+  empty            : boolean,
+  searchStr        : string,
+  client_id        : number | string | undefined,
+  local_id         : number | string | undefined,
+  serv_id          : number | string | undefined,
+  category_id      : number | string | undefined,
+  service_id       : number | string | undefined,
+  option_id        : number | string | undefined,
+  categories       : Opts[],
+  services         : Opts[],
+  options          : Opts[],
+  client_data_set  : customer_list[],
+  location_data_set: customer_addr[],
+  serv_data_set    : customer_services[],
+  price            : number | string,
+  ruleForm         : orderFrom,
+  autoEmp          : boolean,
+  changeLoading    : boolean,
+  empLoading       : boolean,
+  remain           : number,
+  auto_male        : number,
+  auto_female      : number
 }
 interface Opts {
   value: number | string;
@@ -338,11 +385,12 @@ const serv_type_color: string[] = [
   "",
 ];
 let categories_loaded: boolean = false;
-let services_loaded: boolean   = false;
-let options_loaded: boolean    = false;
-let services: service[]        = [];
-let option: service_option[]   = [];
+let services_loaded: boolean = false;
+let options_loaded: boolean = false;
+let services: service[] = [];
+let option: service_option[] = [];
 const rules = {};
+// ! -----------------------------------------------------------------------------------------------------------------------------
 </script>
 <script setup lang="ts">
 const { urls, showMsg, req } =
@@ -353,48 +401,56 @@ const handleEdit = (e, a) => console.log(e, a);
 const formRef = ref<EditCoreCustomerType | null>(null);
 
 let categories_loading = ref<boolean>(false);
-let services_loading   = ref<boolean>(false);
-let options_loading    = ref<boolean>(false);
+let services_loading = ref<boolean>(false);
+let options_loading = ref<boolean>(false);
+
+const empOptions = ref([]);
 
 const state = reactive<Order_add_data>({
-  disable_close: false,
-  edit_id      : -1,
-  edit_now_id  : -1,
-  loading      : false,
-  empty        : false,
-  searchStr    : "",
-  client_id    : undefined,
-  local_id     : undefined,
-  serv_id      : undefined,
-  category_id  : undefined,
-  service_id   : undefined,
-  option_id    : undefined,
-  client_data  : [],
-  location_data: [],
-  serv_data    : [],
-  categories   : [],
-  services     : [],
-  options      : [],
-  price        : 0,
-  ruleForm     : {
-    remark        : '',
-    order_time    : '',
-    order_time_end: '',
-    special_needs : '',
-    time: [undefined, undefined]
+  disable_close    : false,
+  edit_id          : -1,
+  edit_now_id      : -1,
+  loading          : false,
+  empty            : false,
+  searchStr        : "",
+  client_id        : undefined,
+  local_id         : undefined,
+  serv_id          : undefined,
+  category_id      : undefined,
+  service_id       : undefined,
+  option_id        : undefined,
+  client_data_set  : [],
+  location_data_set: [],
+  serv_data_set    : [],
+  categories       : [],
+  services         : [],
+  options          : [],
+  price            : 0,
+  ruleForm         : {
+    remark        : "",
+    order_time    : "",
+    order_time_end: "",
+    special_needs : "",
+    time          : [undefined, undefined],
   },
-  autoEmp: true,
-  changeLoading:false,
-  remain : 0
+  autoEmp      : true,
+  changeLoading: false,
+  remain       : 0,
+  auto_male    : 0,
+  auto_female  : 0,
+  empLoading: false
 });
 
-onMounted(()=>{
+onMounted(() => {
   order_get_remain();
 });
 
-const order_get_remain = ()=>{
-  req.get(urls.order_get_remain, (d:remain)=>state.remain = parseInt(`${d.data}`));
-}
+const order_get_remain = () => {
+  req.get(
+    urls.order_get_remain,
+    (d: remain) => (state.remain = parseInt(`${d.data}`))
+  );
+};
 
 const addr_change = () => {
   state.local_id = undefined;
@@ -408,7 +464,8 @@ const category_change = () => {
   if (services.length < 1) loadCore(true, services_loaded, "services_list");
   services.forEach(
     (a) =>
-      a.class_id == state.category_id && tmpOpt.push({ label: a.name, value: a.id })
+      a.class_id == state.category_id &&
+      tmpOpt.push({ label: a.name, value: a.id })
   );
   state.services = tmpOpt;
 };
@@ -418,24 +475,28 @@ const services_change = () => {
   if (option.length < 1) loadCore(true, options_loaded, "services_options");
   option.forEach(
     (a) =>
-      a.service_id == state.service_id && tmpOpt.push({ label: a.name, value: a.id })
+      a.service_id == state.service_id &&
+      tmpOpt.push({ label: a.name, value: a.id })
   );
   state.options = tmpOpt;
 };
 
 const on11Get = (v: string) => v.length >= 11 && getData();
 let cancel: false | Function = false;
+
 const getData = () => {
   const mobile = state.searchStr.trim();
+  const currentDate = new Date();
+  // initialize
   state.edit_id = -1;
   state.edit_now_id = -1;
-  const currentDate = new Date();
-  state.serv_data = [];
-  state.location_data = [];
-  state.client_data = [];
+  state.serv_data_set = [];
+  state.location_data_set = [];
+  state.client_data_set = [];
   if (cancel) cancel();
   if (mobile == "") return;
   state.loading = true;
+  // request
   cancel = req.post(
     `${urls.customer_search}/page/1`,
     { mobile },
@@ -449,20 +510,20 @@ const getData = () => {
         return;
       }
       state.empty = false;
-      state.client_data = d.data;
-      state.location_data = d.addr;
-      console.log(state.location_data);
-      const serv_data = [];
-      for (const k in d.services) serv_data.push(...d.services[k]);
-      serv_data.forEach((e, i) => {
+      state.client_data_set = d.data;
+      state.location_data_set = d.addr;
+      console.log(state.location_data_set);
+      const serv_data_set = [];
+      for (const k in d.services) serv_data_set.push(...d.services[k]);
+      serv_data_set.forEach((e, i) => {
         const end_date = new Date(e.end_time);
         const expired = end_date < currentDate;
         const near = expired
           ? false
           : end_date.getTime() - currentDate.getTime() < 2678400000;
-        serv_data[i] = { ...e, expired, near };
+        serv_data_set[i] = { ...e, expired, near };
       });
-      state.serv_data = serv_data;
+      state.serv_data_set = serv_data_set;
       state.client_id = undefined;
       state.local_id = undefined;
       state.serv_id = undefined;
@@ -483,28 +544,33 @@ const getPrice = () => {
 };
 
 const beforeChange = () => {
-  state.changeLoading = true
+  state.changeLoading = true;
   return new Promise((solve, reject) => {
     if (state.autoEmp === false || state.remain == -1) {
       state.changeLoading = false;
       return solve(true);
     }
-    if (state.autoEmp === true &&  state.remain == 0) {
-      ElMessageBox.alert('您的指定派工次数已用完');
+    if (state.autoEmp === true && state.remain == 0) {
+      ElMessageBox.alert("您的指定派工次数已用完");
       reject(true);
     }
-    const $remain:number|string = state.remain == -1 ? '不限' : state.remain ;
-    ElMessageBox.confirm(`您的指定派工次数为 ${$remain} 次，您确定要指定派工吗？`, "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "info",
-  }).then(solve)
-  .catch(reject)
-  .finally(()=>{
-    state.changeLoading = false;
-  })
-  })
-}
+    const $remain: number | string = state.remain == -1 ? "不限" : state.remain;
+    ElMessageBox.confirm(
+      `您的指定派工次数为 ${$remain} 次，您确定要指定派工吗？`,
+      "提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "info",
+      }
+    )
+      .then(solve)
+      .catch(reject)
+      .finally(() => {
+        state.changeLoading = false;
+      });
+  });
+};
 
 const loadAll = () => {
   changeLoading(true);
@@ -554,11 +620,18 @@ const loadCore = (force: boolean, itemLoaded: boolean, urlKey: string) => {
     );
   } else changeLoading(false);
 };
-
-const handleSubmit = () => {};
+const remoteMethod = e => {
+  state.empLoading = true
+  console.log(e);
+}
+const handleChange = e => console.log(e);
+const handleEmp = ()=>{}
+const handleSubmit = () => {
+  const data = formRef.value.getOriginData;
+};
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -584,7 +657,7 @@ const handleSubmit = () => {};
   color: #409eff;
   cursor: pointer;
 }
-.good-form{
+.good-form {
   margin-top: 2rem;
   width: 35%;
   min-width: 300px;
@@ -601,8 +674,12 @@ const handleSubmit = () => {};
 .el-select-v2:not(:first-child) {
   margin-top: 1rem;
 }
+.submit {
+  border-top: 1px solid var(--el-border-color);
+  padding-top: 1rem;
+}
 </style>
-<style>
+<style lang="scss">
 .addr-selector .el-radio-group > div {
   width: 100%;
 }
