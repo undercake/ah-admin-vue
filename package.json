@@ -13,22 +13,27 @@
     "@vitejs/plugin-vue": "^4.1.0",
     "@vue/compiler-sfc": "^3.2.47",
     "axios": "0.21.1",
+    "buffer": "^6.0.3",
     "echarts": "^5.4.1",
     "element-plus": "^2.3.2",
     "js-md5": "^0.7.3",
     "mitt": "^3.0.0",
-    "pinyin-pro": "^3.13.1"
+    "node-polyfill-webpack-plugin": "^2.0.1",
+    "pinyin-pro": "^3.13.1",
+    "xlsx": "^0.18.5",
+    "xlsx-style": "^0.8.13"
   },
   "devDependencies": {
-    "vite": "^4.2.1",
-    "vite-plugin-babel-import": "^2.0.5",
-    "vue": "^3.2.47",
-    "vue-router": "^4.1.6",
+    "@types/xlsx": "^0.0.36",
     "sass": "^1.54.9",
     "terser": "^5.16.8",
     "unplugin-auto-import": "^0.11.2",
     "unplugin-element-plus": "^0.4.1",
+    "unplugin-vue-components": "^0.22.7",
+    "vite": "^4.2.1",
+    "vite-plugin-babel-import": "^2.0.5",
+    "vue": "^3.2.47",
     "vue-echarts": "^6.5.4",
-    "unplugin-vue-components": "^0.22.7"
+    "vue-router": "^4.1.6"
   }
 }

@@ -1,51 +1,54 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
-import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-import ElementPlus from 'unplugin-element-plus/vite' // 不加这个配置，ElMessage出不来
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
+import Components from "unplugin-vue-components/vite";
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+import ElementPlus from "unplugin-element-plus/vite"; // 不加这个配置，ElMessage出不来
 
 // https://vitejs.dev/config/
 // export default ({ mode }) => defineConfig({
 export default defineConfig({
-  base: '/vite/midas',
+  base: "./",
   plugins: [
     vue(),
     // 按需引入，主题色的配置，需要加上 importStyle: 'sass'
     Components({
-      resolvers: [ElementPlusResolver({
-        importStyle: 'sass'
-      })],
+      resolvers: [
+        ElementPlusResolver({
+          importStyle: "sass",
+        }),
+      ],
     }),
-    ElementPlus()
+    ElementPlus(),
   ],
-  build:{
-    minify: 'terser',
+  build: {
+    minify: "terser",
     terserOptions: {
       compress: {
-          //生产环境时移除console.log()
-          drop_console: true,
-          drop_debugger: true,
+        //生产环境时移除console.log()
+        drop_console: true,
+        drop_debugger: true,
       },
     },
     rollupOptions: {
       external: [
-        '/static/back-light.png',
-        '/static/back-dark.jpg'
-      ]
-    }
+        "/static/aws/css/all.css",
+        "/static/back-light.png",
+        "/static/back-dark.jpg",
+      ],
+    },
   },
   resolve: {
     alias: {
-      '~': path.resolve(__dirname, './'),
-      '@': path.resolve(__dirname, 'src')
+      "~": path.resolve(__dirname, "./"),
+      "@": path.resolve(__dirname, "src"),
     },
   },
   server: {
     proxy: {
-      '/midas': {
+      "/midas": {
         // 测试环境
-        target: 'http://test.kmahjz.com.cn', // 接口域名
+        target: "http://test.kmahjz.com.cn", // 接口域名
         changeOrigin: true, //是否跨域
         pathRewrite: {
           "^/api": "",
@@ -61,12 +64,12 @@ export default defineConfig({
           }
         },
       },
-      '/static': 'http://test.kmahjz.com.cn',
-      '/upload': 'http://test.kmahjz.com.cn',
+      "/static": "http://test.kmahjz.com.cn",
+      "/upload": "http://test.kmahjz.com.cn",
     },
     watch: {
-      usePolling: true
-    }
+      usePolling: true,
+    },
   },
   css: {
     preprocessorOptions: {
@@ -75,5 +78,5 @@ export default defineConfig({
         additionalData: `@use "@/styles/element/index.scss" as *;`,
       },
     },
-  },
-})
+  }
+});

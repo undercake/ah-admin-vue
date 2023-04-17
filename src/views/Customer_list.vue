@@ -27,7 +27,11 @@
               </el-button>
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)">
+          <el-button type="primary" @click="exportData">
+            <i class=" fa fa-solid fa-file-export" />
+            导出 Excel
+          </el-button>
+          <el-button type="primary" @click="getData(state.currentPage)" @loading="state.exportLoading">
             <i class="fa fa-solid fa-arrows-rotate" />
             刷新
           </el-button>
@@ -51,6 +55,15 @@
             <i class="fa fa-solid fa-magnifying-glass" />
             搜索
           </el-button>
+          <el-text class="search">
+            每页显示：
+            <el-input-number
+              v-model="state.pageSize"
+              :min="5"
+              :max="200"
+              @change="changeCount"
+            />
+          </el-text>
           <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
@@ -62,7 +75,7 @@
         style="width: 100%"
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" />
+        <el-table-column type="selection" @selectable="selectable" />
         <el-table-column prop="name" label="姓名" width="130">
           <template #default="scope">
             {{ scope.row.name }}
@@ -146,14 +159,11 @@
                 >
                   {{ item.expired ? "已" : item.near ? "临近" : "未" }}过期
                 </el-tag>
-                {{ item.end_time }}
+                {{ item.end_time.split(' ')[0] }}
               </el-text>
               <el-text
                 truncated
-                style="
-                  margin-left: 0.5rem;
-                  background: var(--el-color-warning-light-7);
-                "
+                style="margin-left: 0.5rem;background: var(--el-color-warning-light-7);"
               >
                 {{ item.remark }}
               </el-text>
@@ -219,10 +229,69 @@
   </layout>
 </template>
 
-<script>
+<script lang="ts">
 import { onMounted, reactive, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogCustomer from "@/components/EditDialogCustomer.vue";
+// import XLSXS from 'xlsx-style';
+import * as XLSX from 'xlsx';
+
+interface client_data {
+  id         : number,
+  name       : string,
+  mobile     : string,
+  black      : number,
+  pym        : string,
+  pinyin     : string,
+  del        : number,
+  create_time: string,
+  last_modify: string,
+  remark     : string,
+  total_money: string,
+  total_count: number,
+  type       : number,
+}
+
+interface address {
+    address    : string,
+    area       : number,
+    customer_id: number,
+    id         : number,
+}
+
+interface service {
+  contract_code: string,
+  contract_path: string,
+  create_time  : string,
+  customer_id  : number,
+  deleted      : number,
+  end_time     : string,
+  id           : number,
+  remark       : string,
+  start_time   : string,
+  type         : number,
+expired:boolean,
+near:boolean,
+}
+
+interface state {
+  edit_id: number,
+  searchStr: "",
+  addr: Array<address[]>,
+  services: Array<service[]>,
+  firstLoading: boolean,
+  loading: boolean,
+  tableData: client_data[], // 数据列表
+  multipleSelection: client_data[], // 选中项
+  total: number, // 总条数
+  currentPage: number, // 当前页
+  pageSize: number, // 分页大小
+  empty: string,
+  searchLoading: boolean,
+  searchType: undefined|number,
+  exportLoading:boolean
+}
+
 const serv_types = [
   "暂无",
   "钟点",
@@ -233,11 +302,12 @@ const serv_types = [
   "月卡",
   "半月卡",
 ];
+let timer = 0;
 </script>
-<script setup>
+<script setup lang="ts">
 const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
-const state = reactive({
+const state:state = reactive({
   edit_id: -1,
   searchStr: "",
   addr: [],
@@ -250,8 +320,9 @@ const state = reactive({
   currentPage: 1, // 当前页
   pageSize: 10, // 分页大小
   empty: "没有数据",
+  searchType: undefined,
   searchLoading: false,
-  searchType: undefined
+  exportLoading: false
 });
 onMounted(() => {
   getData();
@@ -276,13 +347,11 @@ const getData = (page = 0) => {
       const pros_data = (e, k) => {
         const end_date = new Date(e.end_time);
         const expired = end_date < currentDate;
-        const near = expired ? false : end_date - currentDate < 2678400000;
+        const near = expired ? false : end_date.getTime() - currentDate.getTime() < 2678400000;
         state.services[i][k] = { ...e, expired, near };
       };
-      console.log(s);
-      console.log(typeof s);
       s && s.forEach(pros_data);
-      s.sort((a, b) => new Date(b.end_time) - new Date(a.end_time));
+      s.sort((a, b) => new Date(b.end_time).getTime() - new Date(a.end_time).getTime());
     }
     state.tableData = [...d.data];
     state.loading = false;
@@ -302,12 +371,13 @@ const getData = (page = 0) => {
     state.empty = "加载错误";
   };
   const _type = (state.searchType <= -1 || state.searchType === undefined || ('' + state.searchType).trim() === '') ? '' : '/type/' + state.searchType;
+  const _item = state.pageSize === 10 ? '' : '/item/' + state.pageSize;
   state.searchLoading = true;
   if (state.searchStr.trim() == "" && (state.searchType === -1 || state.searchType === undefined || ('' + state.searchType).trim() === ''))
-    req.get(`${urls.customer_list}/page/${page}`, processData, handleErr);
+    req.get(`${urls.customer_list}/page/${page}${_item}`, processData, handleErr);
   else
     req.post(
-      `${urls.customer_search}/page/${page}${_type}`,
+      `${urls.customer_search}/page/${page}${_type}${_item}`,
       {
         mobile: state.searchStr.trim(),
       },
@@ -316,14 +386,14 @@ const getData = (page = 0) => {
     );
 };
 // 修改分类
-const handleEdit = (id) => {
+const handleEdit = (id:number) => {
   if (!hasRights("/customer/edit")) return showMsg.err("您没有权限编辑此项目");
   state.edit_id = id;
 };
 
 const handleClosed = () => (state.edit_id = -1);
 // 选择项
-const handleSelectionChange = (val) => (state.multipleSelection = val);
+const handleSelectionChange = (val:client_data[]) => (state.multipleSelection = val);
 // 批量删除
 const handleDelete = () => {
   console.log(state.multipleSelection.length);
@@ -333,19 +403,109 @@ const handleDelete = () => {
   req.post(urls.customer_delete, { ids }, () => getData());
 };
 // // 单个删除
-const handleDeleteOne = (id) => {
+const handleDeleteOne = (id:number) => {
   req.del(urls.customer_delete + "/id/" + id, () => getData());
 };
 
-const handleBlack = (id) =>
+const handleBlack = (id:number) =>
   req.get(`${urls.customer_quick_blk}/id/${id}`, () => getData());
-const handleRecBlack = (id) =>
+const handleRecBlack = (id:number) =>
   req.get(`${urls.customer_quick_rec_blk}/id/${id}`, () => getData());
+
+const changeCount = () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    getData();
+  }, 1500);
+}
+
+interface wch {
+  wch: number
+}
+
+const exportData = ()=>{
+  if (state.multipleSelection.length < 1)
+    return showMsg.warn("您没有选择要导出的数据！");
+  state.exportLoading = true;
+  state.searchLoading = true;
+  const data:Array<Array<string|number>> = state.multipleSelection.map(a => {
+    const {id, name, mobile,  remark, total_money, total_count, type } = a;
+    const serv = state.services[id];
+    const addr = state.addr[id].map(a =>a.address);
+    let address = [''];
+      address[0] = serv_types[serv[0].type];
+      address[1] = serv[0].end_time.split(' ')[0];
+      address[2] = serv[0].contract_code;
+      address[3] = serv[0].remark;
+    return [id, name, mobile.split(',').join("；\n"), addr.join("；\n"),  remark, total_money, total_count, ['普通客户', "VIP", "重要领导"][type], ...address];
+  });
+  data.unshift(['ID', '姓名', '电话', '地址', '备注', '剩余金额', '剩余次数', '客户类型', '合同类型', '到期时间', '合同编号', '合同备注']);
+  const worksheet = XLSX.utils.aoa_to_sheet(data, {});
+
+  let widths:wch[] = [];
+  data.forEach(w=>w.forEach((o, i) => {
+    let valueWidth = 10;
+    if (/.*[\u4e00-\u9fa5]+.*$/.test(o)) {
+        valueWidth = parseFloat('' + `${o}`.length * 2.15);
+      } else {
+        valueWidth = parseFloat('' + `${o}`.length * 1.15);
+      }
+      let oldWdith = 0;
+      if (widths[i]?.wch)
+        oldWdith = widths[i].wch;
+      widths[i] = {wch: Math.max(valueWidth, oldWdith)};
+  }));
+  worksheet["!cols"] = widths;
+  const border = {
+    top: {
+      style: 'thin',
+    },
+    bottom: {
+      style: 'thin',
+    },
+    left: {
+      style: 'thin',
+    },
+    right: {
+      style: 'thin',
+    }
+  }
+
+
+  const alpha = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1','M1','N1','O1','P1','Q1','R1','S1','T1'];
+
+  for (const key in worksheet) {
+    const o = worksheet[key].v;
+    if (key.indexOf('!') > -1) continue;
+    let s = {border}
+    if (alpha.includes(key)) s = {border, font:{bold:true}, alignment: {
+      horizontal: 'center',
+      vertical: 'center'
+    }}
+    worksheet[key] = { ...worksheet[key], s };
+  }
+  // worksheet = worksheet.map();
+  console.log(worksheet);
+
+  // [ { wch(e){e.rows.reduce((w, r) => Math.max(w, r.name.length), 10)} } ];
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, '0');
+  XLSX.writeFile(workbook, `客户信息-${state.currentPage}.xlsx`);
+  console.log(worksheet, XLSX.utils);
+
+  state.exportLoading = false;
+  state.searchLoading = false;
+}
+const selectable = () => !state.exportLoading;
 </script>
 
 <style scoped>
 .search {
   width: 12rem;
   margin: 0 0.6rem;
+}
+.search.el-select {
+  width: 6rem;
 }
 </style>

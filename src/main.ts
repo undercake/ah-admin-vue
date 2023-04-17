@@ -1,7 +1,7 @@
 /*
  * @Author: undercake
  * @Date: 2023-03-03 17:20:58
- * @LastEditTime: 2023-04-15 17:02:51
+ * @LastEditTime: 2023-04-17 17:15:52
  * @FilePath: /ah-admin-vue/src/main.ts
  * @Description: VUE主配置文件
  */
@@ -326,7 +326,7 @@ app.config.globalProperties.req = req;
 app.config.globalProperties.mittBus = mittBus;
 app.config.globalProperties.hasRights = hasRights;
 app.config.globalProperties.getRouteName = getRouteName;
-app.config.globalProperties.version = '0.3.2';
+app.config.globalProperties.version = '0.4.0';
 
 app.use(router); // 引用路由实例
 app

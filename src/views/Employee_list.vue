@@ -27,8 +27,12 @@
               </el-button>
             </template>
           </el-popconfirm>
-          <el-button type="primary" @click="getData(state.currentPage)">
-            <i class="fa fa-solid fa-arrows-rotate"></i>刷新
+          <el-button type="primary" @click="exportData">
+            <i class=" fa fa-solid fa-file-export" />
+            导出 Excel
+          </el-button>
+          <el-button type="primary" @click="getData(state.currentPage)" :disabled="state.searchLoading" :loading="state.searchLoading">
+            <i class="fa fa-solid fa-arrows-rotate" />刷新
           </el-button>
           <el-input
             v-model="state.searchStr"
@@ -42,6 +46,15 @@
             <i class="fa fa-solid fa-magnifying-glass" />
             搜索
           </el-button>
+          <el-text class="search">
+            每页显示：
+            <el-input-number
+              v-model="state.pageSize"
+              :min="5"
+              :max="200"
+              @change="changeCount"
+            />
+          </el-text>
           <el-text class="list-total">共 {{ state.total }} 项</el-text>
         </div>
       </template>
@@ -139,11 +152,15 @@
   </layout>
 </template>
 
-<script setup>
+<script>
 import { h, onMounted, reactive, ref, getCurrentInstance } from "vue";
 import Layout from "@/components/Layout.vue";
 import EditDialogEmp from "@/components/EditDialogEmp.vue";
+import * as XLSX from 'xlsx';
+let timer = 0;
+</script>
 
+<script setup>
 const { urls, showMsg, req, hasRights } =
   getCurrentInstance().appContext.config.globalProperties;
 const state = reactive({
@@ -160,6 +177,8 @@ const state = reactive({
   level: 1,
   parent_id: 0,
   empty: "没有数据",
+  searchLoading: false,
+  exportLoading: false
 });
 onMounted(() => {
   getData();
@@ -192,11 +211,12 @@ const getData = (page = 0) => {
     state.firstLoading = false;
     state.empty = "加载错误";
     // showMsg.err('加载错误')
-  };
+  };0
+  const _item = state.pageSize == 10 ? '' : '/item/' + state.pageSize;
   state.searchStr.trim() == ""
-    ? req.get(`${urls.employee_list}/page/${page}`, handle_succ, handle_fail)
+    ? req.get(`${urls.employee_list}/page/${page}${_item}`, handle_succ, handle_fail)
     : req.post(
-        `${urls.employee_search}/page/${page}`,
+        `${urls.employee_search}/page/${page}${_item}`,
         { search: state.searchStr },
         handle_succ,
         handle_fail
@@ -223,6 +243,78 @@ const handleDelete = () => {
 const handleDeleteOne = (id) => {
   req.del(urls.employee_delete + "/id/" + id, () => getData());
 };
+
+const changeCount = () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    getData();
+  }, 1500);
+}
+
+const exportData = ()=>{
+  if (state.multipleSelection.length < 1)
+    return showMsg.warn("您没有选择要导出的数据！");
+  state.exportLoading = true;
+  state.searchLoading = true;
+  const data = state.multipleSelection.map(a => {
+    const {id, name, phone, id_code, birth_date, address, workee, note } = a;
+    return [id, name, phone, address,  id_code, birth_date == '0000-00-00' ? '' : birth_date, workee, note];
+  });
+  data.unshift(['ID', '姓名', '电话', '地址', '身份证号码', '出生年月', '工作内容', '备注']);
+  const worksheet = XLSX.utils.aoa_to_sheet(data, {});
+
+  let widths = [];
+  data.forEach(w=>w.forEach((o, i) => {
+    let valueWidth = 10;
+    if (/.*[\u4e00-\u9fa5]+.*$/.test(o)) {
+        valueWidth = parseFloat('' + `${o}`.length * 2.15);
+      } else {
+        valueWidth = parseFloat('' + `${o}`.length * 1.15);
+      }
+      let oldWdith = 0;
+      if (widths[i]?.wch)
+        oldWdith = widths[i].wch;
+      widths[i] = {wch: Math.max(valueWidth, oldWdith)};
+  }));
+  worksheet["!cols"] = widths;
+  const border = {
+    top: {
+      style: 'thin',
+    },
+    bottom: {
+      style: 'thin',
+    },
+    left: {
+      style: 'thin',
+    },
+    right: {
+      style: 'thin',
+    }
+  }
+
+
+  const alpha = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1','M1','N1','O1','P1','Q1','R1','S1','T1'];
+
+  for (const key in worksheet) {
+    const o = worksheet[key].v;
+    if (key.indexOf('!') > -1) continue;
+    let s = {border}
+    if (alpha.includes(key)) s = {border, font:{bold:true}, alignment: {
+      horizontal: 'center',
+      vertical: 'center'
+    }}
+    worksheet[key] = { ...worksheet[key], s };
+  }
+
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, '0');
+  XLSX.writeFile(workbook, `员工信息-${state.currentPage}.xlsx`);
+  console.log(worksheet, XLSX.utils);
+
+  state.exportLoading = false;
+  state.searchLoading = false;
+}
 </script>
 
 <style scoped>
